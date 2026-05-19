@@ -31,12 +31,12 @@ const welcomeEmailTemplate = (name) => {
 <body style="margin:0;padding:0;background-color:#FFF7ED;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
   <div style="max-width:600px;margin:0 auto;background:#FFFFFF;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
     <div style="background:linear-gradient(135deg,#D97706,#DC2626,#7C3AED);padding:40px 30px;text-align:center;">
-      <h1 style="color:#FFFFFF;margin:0;font-size:28px;letter-spacing:1px;">🪔 SanskritiUtsav</h1>
+      <h1 style="color:#FFFFFF;margin:0;font-size:28px;letter-spacing:1px;">🪔 EventVerse</h1>
       <p style="color:#FEF3C7;margin:8px 0 0;font-size:14px;">Celebrating India's Living Culture</p>
     </div>
     <div style="padding:30px;">
       <h2 style="color:#92400E;margin-top:0;">Namaste, ${name}! 🙏</h2>
-      <p style="color:#57534E;line-height:1.6;">Welcome to <strong>SanskritiUtsav</strong> — your gateway to India's most vibrant cultural festivals, classical music concerts, folk dance performances, art exhibitions, and more!</p>
+      <p style="color:#57534E;line-height:1.6;">Welcome to <strong>EventVerse</strong> — your gateway to India's most vibrant cultural festivals, classical music concerts, folk dance performances, art exhibitions, and more!</p>
       <p style="color:#57534E;line-height:1.6;">Here's what you can do:</p>
       <ul style="color:#57534E;line-height:2;">
         <li>🎭 Discover festivals across 12 cultural categories</li>
@@ -50,7 +50,7 @@ const welcomeEmailTemplate = (name) => {
       <p style="color:#78716C;font-size:13px;text-align:center;">May every festival bring joy to your heart ✨</p>
     </div>
     <div style="background:#1C1917;padding:20px;text-align:center;">
-      <p style="color:#A8A29E;margin:0;font-size:12px;">© ${new Date().getFullYear()} SanskritiUtsav. Made with ❤️ for Indian Culture</p>
+      <p style="color:#A8A29E;margin:0;font-size:12px;">© ${new Date().getFullYear()} EventVerse. Made with ❤️ for Indian Culture</p>
     </div>
   </div>
 </body>
@@ -75,7 +75,7 @@ const registrationConfirmTemplate = (name, eventTitle, eventDate, eventVenue, qr
   <div style="max-width:600px;margin:0 auto;background:#FFFFFF;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
     <div style="background:linear-gradient(135deg,#D97706,#DC2626);padding:40px 30px;text-align:center;">
       <h1 style="color:#FFFFFF;margin:0;font-size:24px;">🎫 Ticket Confirmed!</h1>
-      <p style="color:#FEF3C7;margin:8px 0 0;font-size:14px;">SanskritiUtsav</p>
+      <p style="color:#FEF3C7;margin:8px 0 0;font-size:14px;">EventVerse</p>
     </div>
     <div style="padding:30px;">
       <h2 style="color:#92400E;margin-top:0;">Namaste, ${name}!</h2>
@@ -95,7 +95,7 @@ const registrationConfirmTemplate = (name, eventTitle, eventDate, eventVenue, qr
       </div>
     </div>
     <div style="background:#1C1917;padding:20px;text-align:center;">
-      <p style="color:#A8A29E;margin:0;font-size:12px;">© ${new Date().getFullYear()} SanskritiUtsav. Made with ❤️ for Indian Culture</p>
+      <p style="color:#A8A29E;margin:0;font-size:12px;">© ${new Date().getFullYear()} EventVerse. Made with ❤️ for Indian Culture</p>
     </div>
   </div>
 </body>
@@ -114,7 +114,7 @@ const passwordResetTemplate = (name, otp) => {
   <div style="max-width:600px;margin:0 auto;background:#FFFFFF;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
     <div style="background:linear-gradient(135deg,#7C3AED,#4F46E5);padding:40px 30px;text-align:center;">
       <h1 style="color:#FFFFFF;margin:0;font-size:24px;">🔐 Password Reset</h1>
-      <p style="color:#E0E7FF;margin:8px 0 0;font-size:14px;">SanskritiUtsav</p>
+      <p style="color:#E0E7FF;margin:8px 0 0;font-size:14px;">EventVerse</p>
     </div>
     <div style="padding:30px;">
       <h2 style="color:#3730A3;margin-top:0;">Hello, ${name}</h2>
@@ -128,7 +128,7 @@ const passwordResetTemplate = (name, otp) => {
       <p style="color:#78716C;font-size:13px;line-height:1.6;">If you didn't request this reset, please ignore this email. Your account remains secure.</p>
     </div>
     <div style="background:#1C1917;padding:20px;text-align:center;">
-      <p style="color:#A8A29E;margin:0;font-size:12px;">© ${new Date().getFullYear()} SanskritiUtsav. Made with ❤️ for Indian Culture</p>
+      <p style="color:#A8A29E;margin:0;font-size:12px;">© ${new Date().getFullYear()} EventVerse. Made with ❤️ for Indian Culture</p>
     </div>
   </div>
 </body>

@@ -15,9 +15,16 @@ const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 
+const allowedOrigins = [process.env.CLIENT_URL, 'http://localhost:5174'].filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      callback(new Error(`CORS policy blocked origin: ${origin}`));
+    },
     credentials: true,
   })
 );
@@ -28,7 +35,7 @@ app.use(morgan('dev'));
 app.get('/', (req, res) => {
   res.json({
     success: true,
-    message: 'SanskritiUtsav API is running 🪔',
+    message: 'EventVerse API is running 🪔',
   });
 });
 

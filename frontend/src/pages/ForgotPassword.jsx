@@ -1,279 +1,292 @@
-import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import EventCard from '../components/EventCard';
-import { getFeaturedEvents, getEventsByCategory, getUpcomingEvents } from '../services/eventService';
-import { HiOutlineSearch, HiOutlineTicket, HiOutlineStar, HiOutlineArrowRight } from 'react-icons/hi';
+import { forgotPassword, resetPassword } from '../services/authservice';
+import { HiOutlineMailOpen, HiOutlineKey, HiOutlineArrowLeft } from 'react-icons/hi';
 
-const categoryEmojis = {
-  'Classical Music': '🎵',
-  'Folk Dance': '💃',
-  'Classical Dance': '🩰',
-  'Art Exhibition': '🎨',
-  'Food Festival': '🍛',
-  'Theater & Drama': '🎭',
-  'Craft Fair': '🏺',
-  'Cultural Parade': '🎪',
-  'Literary Festival': '📚',
-  'Film Festival': '🎬',
-  'Spiritual & Religious': '🕉️',
-  Other: '🎉',
-};
-
-// Counter Hook for Stats Bar
-const useCounter = (end, duration = 2000) => {
-  const [count, setCount] = useState(0);
-  const nodeRef = useRef(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          let startTimestamp = null;
-          const step = (timestamp) => {
-            if (!startTimestamp) startTimestamp = timestamp;
-            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-            setCount(Math.floor(progress * end));
-            if (progress < 1) {
-              window.requestAnimationFrame(step);
-            }
-          };
-          window.requestAnimationFrame(step);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (nodeRef.current) {
-      observer.observe(nodeRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, [end, duration]);
-
-  return [count, nodeRef];
-};
-
-const Home = () => {
-  const [featured, setFeatured] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [upcoming, setUpcoming] = useState([]);
+const ForgotPassword = () => {
+  const navigate = useNavigate();
+  const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const [usersCount, usersRef] = useCounter(24500);
-  const [eventsCount, eventsRef] = useCounter(1200);
-  const [citiesCount, citiesRef] = useCounter(45);
-  const [ticketsCount, ticketsRef] = useCounter(89000);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [featRes, catRes, upRes] = await Promise.all([
-          getFeaturedEvents(),
-          getEventsByCategory(),
-          getUpcomingEvents(),
-        ]);
-        setFeatured(featRes.data.data.events || []);
-        setCategories(catRes.data.data.categories || []);
-        setUpcoming(upRes.data.data.events || []);
-      } catch (err) {
-        console.error('Failed to fetch home data:', err);
-      }
-    };
-    fetchData();
-  }, []);
-
-  const handleSubscribe = (e) => {
+  const handleSendOtp = async (e) => {
     e.preventDefault();
-    if (!email) return;
-    toast.success('Thank you for subscribing! 🪔');
-    setEmail('');
+    if (!email.trim()) return toast.error('Please enter your email');
+    setLoading(true);
+    try {
+      await forgotPassword(email);
+      toast.success('OTP sent to your email (if registered)');
+      setStep(2);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to send OTP');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    if (!otp.trim()) return toast.error('Please enter the OTP');
+    if (newPassword.length < 6) return toast.error('Password must be at least 6 characters');
+    setLoading(true);
+    try {
+      await resetPassword({ email, otp, newPassword });
+      toast.success('Password reset successful! Please login.');
+      navigate('/login');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Reset failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const inputStyle = {
+    width: '100%', height: '48px', padding: '0 16px',
+    background: 'var(--bg-light)',
+    border: '1.5px solid var(--border-light)',
+    borderRadius: '10px', fontSize: '14px',
+    color: 'var(--text-dark)', outline: 'none',
+    transition: 'all 0.2s ease', boxSizing: 'border-box',
+    fontFamily: "'Poppins', sans-serif",
+  };
+
+  const labelStyle = {
+    display: 'block', fontSize: '11px', fontWeight: '700',
+    color: 'var(--text-gray)', letterSpacing: '0.08em',
+    textTransform: 'uppercase', marginBottom: '8px',
+    fontFamily: "'Poppins', sans-serif",
   };
 
   return (
-    <div className="bg-bg-base animate-fade-in relative overflow-hidden">
+    <div style={{
+      minHeight: '100vh', background: 'var(--bg-light)',
+      display: 'flex', flexDirection: 'column',
+      justifyContent: 'center', alignItems: 'center',
+      padding: '48px 16px', position: 'relative', overflow: 'hidden',
+    }}>
+      {/* Decorative blobs */}
+      <div style={{
+        position: 'absolute', top: '-60px', right: '-60px',
+        width: '380px', height: '380px',
+        background: 'radial-gradient(circle, rgba(212,82,42,0.08) 0%, transparent 70%)',
+        borderRadius: '50%', pointerEvents: 'none',
+      }} />
+      <div style={{
+        position: 'absolute', bottom: '-60px', left: '-60px',
+        width: '300px', height: '300px',
+        background: 'radial-gradient(circle, rgba(201,168,76,0.06) 0%, transparent 70%)',
+        borderRadius: '50%', pointerEvents: 'none',
+      }} />
 
-      {/* HERO SECTION */}
-      <section className="relative w-full min-h-screen flex items-center justify-center pt-20">
-        <div className="absolute top-[-200px] left-[-100px] w-[600px] h-[600px] bg-[rgba(124,58,237,0.4)] rounded-full filter blur-[80px] opacity-35 pointer-events-none" />
-        <div className="absolute bottom-[0] right-[-150px] w-[500px] h-[500px] bg-[rgba(6,182,212,0.25)] rounded-full filter blur-[80px] opacity-35 pointer-events-none" />
+      {/* Logo */}
+      <Link to="/" style={{
+        display: 'flex', alignItems: 'center', gap: '10px',
+        marginBottom: '36px', textDecoration: 'none',
+        transition: 'transform 0.3s ease',
+      }}
+        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.04)'}
+        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+      >
+        <span style={{ fontSize: '28px' }}>🪔</span>
+        <span style={{
+          fontFamily: "'Playfair Display', serif",
+          fontSize: '26px', fontWeight: '800',
+          color: 'var(--primary-terra)', letterSpacing: '-0.02em',
+        }}>
+          EventVerse
+        </span>
+      </Link>
 
-        <div className="relative z-10 text-center px-4 max-w-5xl mx-auto flex flex-col items-center">
-          <div className="mb-6 px-4 py-1.5 rounded-full border border-transparent bg-[linear-gradient(var(--bg-base),var(--bg-base))_padding-box,var(--accent-gradient)_border-box] animate-slide-up">
-            <span className="inline-flex items-center justify-center gap-2 text-[12px] font-[600] tracking-wider text-text-primary uppercase">
-              <span className="text-accent-cyan">✦</span> Discover Amazing Events
-            </span>
+      {/* Card */}
+      <div style={{
+        width: '100%', maxWidth: '440px',
+        background: 'var(--bg-lighter)',
+        border: '1.5px solid var(--border-light)',
+        borderRadius: '16px', padding: '40px 36px',
+        boxShadow: '0 8px 32px rgba(26,21,16,0.07)',
+        position: 'relative', zIndex: 1,
+        animation: 'fadeUp 0.5s ease both',
+      }}>
+        {/* Icon + Header */}
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <div style={{
+            width: '64px', height: '64px', borderRadius: '14px',
+            background: 'linear-gradient(135deg, rgba(212,82,42,0.1) 0%, rgba(232,131,94,0.08) 100%)',
+            border: '1.5px solid var(--border-lighter)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            margin: '0 auto 20px',
+          }}>
+            {step === 1
+              ? <HiOutlineMailOpen style={{ width: '28px', height: '28px', color: 'var(--primary-terra)' }} />
+              : <HiOutlineKey style={{ width: '28px', height: '28px', color: 'var(--gold)' }} />
+            }
           </div>
-
-          <h1 className="font-sans text-[clamp(48px,7vw,80px)] font-[800] tracking-[-0.04em] leading-[1.1] text-text-primary mb-6 animate-slide-up" style={{ animationDelay: '100ms' }}>
-            <span className="bg-accent-gradient bg-clip-text text-transparent">Experience</span> The Richness<br className="hidden md:block" /> Of Indian Culture
-          </h1>
-
-          <p className="text-[20px] text-text-muted mb-10 max-w-[560px] mx-auto animate-slide-up" style={{ animationDelay: '200ms' }}>
-            From classical ragas to vibrant folk dances, explore India's living heritage and book your tickets to exclusive cultural festivals today.
+          <h2 style={{
+            fontFamily: "'Playfair Display', serif",
+            fontSize: '28px', fontWeight: '800',
+            color: 'var(--text-dark)', marginBottom: '8px',
+          }}>
+            {step === 1 ? 'Reset Password' : 'Verify OTP'}
+          </h2>
+          <p style={{ fontSize: '14px', color: 'var(--text-light)', fontFamily: "'Poppins', sans-serif" }}>
+            {step === 1 ? 'Enter your registered email to receive an OTP' : 'Enter the 6-digit code sent to your email'}
           </p>
+        </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto animate-slide-up" style={{ animationDelay: '300ms' }}>
-            <Link
-              to="/events"
-              className="inline-flex items-center justify-center gap-2 h-[52px] px-[32px] bg-accent-gradient text-white font-[600] text-[16px] rounded-full hover:shadow-glow-primary transition-all duration-300 hover:-translate-y-[2px] active:scale-[0.98] whitespace-nowrap"
+        {/* Step indicator */}
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '28px' }}>
+          {[1, 2].map(s => (
+            <div key={s} style={{
+              flex: 1, height: '4px', borderRadius: '2px',
+              background: s <= step ? 'linear-gradient(90deg, var(--primary-terra), var(--primary-light))' : 'var(--border-light)',
+              transition: 'background 0.4s ease',
+            }} />
+          ))}
+        </div>
+
+        {step === 1 ? (
+          <form onSubmit={handleSendOtp} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div>
+              <label style={labelStyle}>Email Address</label>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                style={inputStyle}
+                onFocus={e => { e.target.style.borderColor = 'var(--primary-terra)'; e.target.style.boxShadow = '0 0 0 3px rgba(212,82,42,0.1)'; }}
+                onBlur={e => { e.target.style.borderColor = 'var(--border-light)'; e.target.style.boxShadow = 'none'; }}
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                width: '100%', height: '48px',
+                background: loading ? 'var(--border-light)' : 'linear-gradient(135deg, var(--primary-terra) 0%, var(--primary-light) 100%)',
+                color: loading ? 'var(--text-gray)' : 'white',
+                border: 'none', borderRadius: '10px',
+                fontSize: '15px', fontWeight: '700',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                transition: 'all 0.3s cubic-bezier(0.34,1.56,0.64,1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                fontFamily: "'Poppins', sans-serif",
+                boxShadow: loading ? 'none' : '0 6px 20px rgba(212,82,42,0.2)',
+              }}
+              onMouseEnter={e => { if (!loading) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 28px rgba(212,82,42,0.3)'; } }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = loading ? 'none' : '0 6px 20px rgba(212,82,42,0.2)'; }}
             >
-              Explore Festivals
-            </Link>
-            <a
-              href="#how-it-works"
-              className="inline-flex items-center justify-center gap-2 h-[52px] px-[32px] border border-[rgba(255,255,255,0.12)] text-text-primary font-[600] text-[16px] rounded-full hover:bg-[rgba(255,255,255,0.04)] transition-all duration-300 hover:-translate-y-[2px] active:scale-[0.98] whitespace-nowrap"
+              {loading ? (
+                <>
+                  <div style={{ width: '16px', height: '16px', border: '2px solid rgba(90,80,72,0.3)', borderTop: '2px solid var(--text-gray)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                  Sending OTP...
+                </>
+              ) : 'Send OTP'}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleResetPassword} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div>
+              <label style={labelStyle}>OTP Code</label>
+              <input
+                type="text"
+                value={otp}
+                onChange={e => setOtp(e.target.value)}
+                maxLength={6}
+                placeholder="123456"
+                style={{
+                  ...inputStyle,
+                  fontSize: '24px', fontFamily: 'monospace',
+                  letterSpacing: '0.4em', textAlign: 'center',
+                }}
+                onFocus={e => { e.target.style.borderColor = 'var(--gold)'; e.target.style.boxShadow = '0 0 0 3px rgba(201,168,76,0.12)'; }}
+                onBlur={e => { e.target.style.borderColor = 'var(--border-light)'; e.target.style.boxShadow = 'none'; }}
+                required
+              />
+            </div>
+            <div>
+              <label style={labelStyle}>New Password</label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+                placeholder="••••••••"
+                style={inputStyle}
+                onFocus={e => { e.target.style.borderColor = 'var(--primary-terra)'; e.target.style.boxShadow = '0 0 0 3px rgba(212,82,42,0.1)'; }}
+                onBlur={e => { e.target.style.borderColor = 'var(--border-light)'; e.target.style.boxShadow = 'none'; }}
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                width: '100%', height: '48px',
+                background: loading ? 'var(--border-light)' : 'linear-gradient(135deg, var(--primary-terra) 0%, var(--primary-light) 100%)',
+                color: loading ? 'var(--text-gray)' : 'white',
+                border: 'none', borderRadius: '10px',
+                fontSize: '15px', fontWeight: '700',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                transition: 'all 0.3s cubic-bezier(0.34,1.56,0.64,1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                fontFamily: "'Poppins', sans-serif",
+                boxShadow: loading ? 'none' : '0 6px 20px rgba(212,82,42,0.2)',
+              }}
+              onMouseEnter={e => { if (!loading) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 28px rgba(212,82,42,0.3)'; } }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = loading ? 'none' : '0 6px 20px rgba(212,82,42,0.2)'; }}
             >
-              How It Works
-            </a>
-          </div>
-        </div>
+              {loading ? (
+                <>
+                  <div style={{ width: '16px', height: '16px', border: '2px solid rgba(90,80,72,0.3)', borderTop: '2px solid var(--text-gray)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                  Resetting...
+                </>
+              ) : 'Reset Password'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setStep(1)}
+              style={{
+                width: '100%', height: '44px',
+                background: 'transparent',
+                border: '1.5px solid var(--border-light)',
+                borderRadius: '10px', fontSize: '14px', fontWeight: '600',
+                color: 'var(--text-gray)', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                transition: 'all 0.2s ease', fontFamily: "'Poppins', sans-serif",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--primary-terra)'; e.currentTarget.style.color = 'var(--primary-terra)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-light)'; e.currentTarget.style.color = 'var(--text-gray)'; }}
+            >
+              <HiOutlineArrowLeft /> Back to Email
+            </button>
+          </form>
+        )}
 
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce">
-          <svg className="w-6 h-6 text-text-subtle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-          </svg>
-        </div>
-      </section>
+        <p style={{
+          textAlign: 'center', marginTop: '28px',
+          fontSize: '14px', color: 'var(--text-light)',
+          fontFamily: "'Poppins', sans-serif",
+        }}>
+          Remember password?{' '}
+          <Link to="/login" style={{ fontWeight: '700', color: 'var(--primary-terra)', textDecoration: 'none' }}
+            onMouseEnter={e => e.target.style.color = 'var(--primary-dark)'}
+            onMouseLeave={e => e.target.style.color = 'var(--primary-terra)'}
+          >
+            Sign in
+          </Link>
+        </p>
+      </div>
 
-      {/* STATS BAR SECTION */}
-      <section className="w-full py-12 bg-[rgba(255,255,255,0.03)] border-y border-[rgba(255,255,255,0.06)] relative z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-[rgba(255,255,255,0.06)]">
-            <div className="flex flex-col items-center justify-center text-center px-4" ref={usersRef}>
-              <div className="text-[48px] font-[800] bg-accent-gradient bg-clip-text text-transparent leading-none mb-2 text-center">{usersCount.toLocaleString()}+</div>
-              <div className="text-[14px] text-text-muted uppercase tracking-[0.05em] font-[600] text-center">Active Users</div>
-            </div>
-            <div className="flex flex-col items-center justify-center text-center px-4" ref={eventsRef}>
-              <div className="text-[48px] font-[800] bg-accent-gradient bg-clip-text text-transparent leading-none mb-2 text-center">{eventsCount.toLocaleString()}+</div>
-              <div className="text-[14px] text-text-muted uppercase tracking-[0.05em] font-[600] text-center">Events Hosted</div>
-            </div>
-            <div className="flex flex-col items-center justify-center text-center px-4" ref={citiesRef}>
-              <div className="text-[48px] font-[800] bg-accent-gradient bg-clip-text text-transparent leading-none mb-2 text-center">{citiesCount}+</div>
-              <div className="text-[14px] text-text-muted uppercase tracking-[0.05em] font-[600] text-center">Cities Reached</div>
-            </div>
-            <div className="flex flex-col items-center justify-center text-center px-4" ref={ticketsRef}>
-              <div className="text-[48px] font-[800] bg-accent-gradient bg-clip-text text-transparent leading-none mb-2 text-center">{ticketsCount.toLocaleString()}</div>
-              <div className="text-[14px] text-text-muted uppercase tracking-[0.05em] font-[600] text-center">Tickets Sold</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FEATURED FESTIVALS */}
-      {featured.length > 0 && (
-        <section className="w-full py-[120px] relative z-10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col items-center text-center mb-12">
-              <span className="text-[12px] font-[700] uppercase tracking-[0.05em] bg-accent-gradient bg-clip-text text-transparent mb-2 block text-center">
-                Curated For You
-              </span>
-              <h2 className="text-[clamp(32px,4vw,48px)] font-[800] text-text-primary leading-tight text-center">
-                Featured Festivals
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featured.slice(0, 6).map((event) => (
-                <EventCard key={event._id} event={event} />
-              ))}
-            </div>
-
-            <div className="flex items-center justify-center mt-10">
-              <Link
-                to="/events"
-                className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full text-sm font-semibold text-text-primary hover:text-accent-secondary transition-colors"
-              >
-                View All Events →
-              </Link>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* HOW IT WORKS */}
-      <section id="how-it-works" className="w-full py-[120px] bg-[rgba(255,255,255,0.02)] border-y border-[rgba(255,255,255,0.06)] relative z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center text-center mb-16">
-            <span className="text-[12px] font-[700] uppercase tracking-[0.05em] bg-accent-gradient bg-clip-text text-transparent mb-2 block">
-              Simple Process
-            </span>
-            <h2 className="text-[clamp(32px,4vw,48px)] font-[800] text-text-primary leading-tight">
-              How It Works
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-            <div className="hidden md:block absolute top-[80px] left-[15%] right-[15%] h-[2px] bg-gradient-to-r from-[rgba(255,255,255,0.05)] via-[rgba(255,255,255,0.1)] to-[rgba(255,255,255,0.05)] border-t border-dashed border-[rgba(255,255,255,0.2)] z-0" />
-
-            {[
-              {
-                num: '01',
-                icon: <HiOutlineSearch />,
-                title: 'Discover Events',
-                desc: 'Browse through 12 categories of cultural events — from classical music to food festivals, all happening near you.',
-              },
-              {
-                num: '02',
-                icon: <HiOutlineTicket />,
-                title: 'Book Securely',
-                desc: 'Book your spot with our seamless registration. Pay securely and receive an instant QR-coded ticket.',
-              },
-              {
-                num: '03',
-                icon: <HiOutlineStar />,
-                title: 'Attend & Enjoy',
-                desc: 'Show your QR code at the venue and immerse yourself in the magic of Indian cultural traditions.',
-              },
-            ].map((step, idx) => (
-              <div
-                key={step.num}
-                className="flex flex-col items-center text-center bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-[16px] p-8 backdrop-blur-card hover:-translate-y-[4px] hover:border-[rgba(124,58,237,0.4)] transition-all duration-300 group relative z-10"
-              >
-                <div className="absolute top-4 right-4 text-[72px] font-[900] bg-accent-gradient bg-clip-text text-transparent opacity-15 leading-none">
-                  {step.num}
-                </div>
-                <div className="inline-flex items-center justify-center w-[48px] h-[48px] rounded-xl bg-[rgba(255,255,255,0.06)] text-accent-cyan text-[24px] mb-6 group-hover:scale-110 transition-transform">
-                  {step.icon}
-                </div>
-                <h3 className="font-[700] text-[20px] text-text-primary mb-3">
-                  {step.title}
-                </h3>
-                <p className="text-text-muted text-[15px] leading-relaxed max-w-xs">
-                  {step.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA BANNER */}
-      <section className="w-full py-[120px] relative z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative bg-[rgba(124,58,237,0.12)] border border-[rgba(124,58,237,0.3)] rounded-[20px] p-10 md:p-16 text-center overflow-hidden flex flex-col items-center gap-6">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,_rgba(124,58,237,0.3),_transparent)] pointer-events-none" />
-
-            <div className="relative z-10 flex flex-col items-center w-full">
-              <h2 className="text-[clamp(32px,4vw,48px)] font-[800] text-text-primary leading-tight mb-4 text-center">
-                Ready to Experience <br /> Something Extraordinary?
-              </h2>
-              <p className="text-[18px] text-[rgba(248,250,252,0.85)] max-w-2xl mx-auto mb-8 text-center">
-                Join our community of culture enthusiasts and never miss out on the most vibrant festivals happening around you.
-              </p>
-              <Link
-                to="/register"
-                className="inline-flex items-center justify-center gap-2 h-[52px] px-[40px] bg-white text-bg-base font-[700] text-[16px] rounded-full hover:bg-[rgba(255,255,255,0.9)] animate-pulse-glow transition-all active:scale-[0.98] whitespace-nowrap"
-              >
-                Sign Up Free <HiOutlineArrowRight />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+      <style>{`
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+      `}</style>
     </div>
   );
 };
 
-export default Home;
+export default ForgotPassword;

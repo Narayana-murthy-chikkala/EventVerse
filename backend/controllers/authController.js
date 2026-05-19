@@ -32,7 +32,7 @@ const register = async (req, res, next) => {
     try {
       await sendEmail({
         to: user.email,
-        subject: '🪔 Welcome to SanskritiUtsav!',
+        subject: '🪔 Welcome to EventVerse!',
         html: welcomeEmailTemplate(user.name),
       });
     } catch (emailError) {
@@ -188,7 +188,7 @@ const forgotPassword = async (req, res, next) => {
       try {
         await sendEmail({
           to: user.email,
-          subject: '🔐 Password Reset OTP — SanskritiUtsav',
+          subject: '🔐 Password Reset OTP — EventVerse',
           html: passwordResetTemplate(user.name, otp),
         });
       } catch (emailError) {

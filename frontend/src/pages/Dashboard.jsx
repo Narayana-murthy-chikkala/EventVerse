@@ -4,11 +4,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import EventCard from '../components/EventCard';
 import { SkeletonCard } from '../components/Loader';
-import {
-  getMyRegistrations,
-  getUpcomingEvents,
-  cancelRegistration,
-} from '../services/eventService';
+import { getMyRegistrations, getUpcomingEvents, cancelRegistration } from '../services/eventService';
 import { HiOutlineTicket, HiOutlineCalendar, HiOutlineSearch, HiOutlinePhotograph, HiOutlinePencilAlt, HiOutlineDownload, HiOutlineX } from 'react-icons/hi';
 
 const Dashboard = () => {
@@ -24,10 +20,7 @@ const Dashboard = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [regRes, upRes] = await Promise.all([
-          getMyRegistrations(),
-          getUpcomingEvents(),
-        ]);
+        const [regRes, upRes] = await Promise.all([getMyRegistrations(), getUpcomingEvents()]);
         setRegistrations(regRes.data.data.registrations || []);
         setUpcoming(upRes.data.data.events || []);
       } catch (err) {
@@ -42,203 +35,206 @@ const Dashboard = () => {
   const handleCancel = async (regId) => {
     try {
       await cancelRegistration(regId);
-      setRegistrations((prev) =>
-        prev.map((r) =>
-          r._id === regId ? { ...r, status: 'cancelled' } : r
-        )
-      );
+      setRegistrations(prev => prev.map(r => r._id === regId ? { ...r, status: 'cancelled' } : r));
       toast.success('Registration cancelled');
       setCancelConfirm(null);
-    } catch (err) {
+    } catch {
       toast.error('Failed to cancel registration');
     }
   };
 
-  const formatDate = (d) =>
-    new Date(d).toLocaleDateString('en-IN', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    });
+  const formatDate = (d) => new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  const getTodayDate = () => new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-  const getTodayDate = () => {
-    return new Date().toLocaleDateString('en-IN', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
-
-  const statusBadge = (status) => {
-    const map = {
-      confirmed: 'bg-[rgba(16,185,129,0.15)] text-success border-[rgba(16,185,129,0.3)]',
-      cancelled: 'bg-[rgba(239,68,68,0.15)] text-danger border-[rgba(239,68,68,0.3)]',
-      waitlisted: 'bg-[rgba(245,158,11,0.15)] text-warning border-[rgba(245,158,11,0.3)]',
-    };
-    return map[status] || 'bg-[rgba(255,255,255,0.1)] text-text-muted border-[rgba(255,255,255,0.2)]';
-  };
-
-  const paymentBadge = (ps) => {
-    const map = {
-      paid: 'bg-[rgba(16,185,129,0.15)] text-success border-[rgba(16,185,129,0.3)]',
-      free: 'bg-[rgba(6,182,212,0.15)] text-accent-cyan border-[rgba(6,182,212,0.3)]',
-      pending: 'bg-[rgba(245,158,11,0.15)] text-warning border-[rgba(245,158,11,0.3)]',
-      failed: 'bg-[rgba(239,68,68,0.15)] text-danger border-[rgba(239,68,68,0.3)]',
-    };
-    return map[ps] || 'bg-[rgba(255,255,255,0.1)] text-text-muted border-[rgba(255,255,255,0.2)]';
+  const statusColors = {
+    confirmed: { bg: 'rgba(107,141,94,0.1)', text: 'var(--sage)', border: 'rgba(107,141,94,0.3)' },
+    cancelled: { bg: 'rgba(212,82,42,0.1)', text: 'var(--primary-terra)', border: 'rgba(212,82,42,0.3)' },
+    waitlisted: { bg: 'rgba(201,168,76,0.1)', text: 'var(--gold)', border: 'rgba(201,168,76,0.3)' },
   };
 
   const tabs = [
-    { key: 'tickets', label: 'My Tickets', icon: <HiOutlineTicket className="w-5 h-5" /> },
-    { key: 'upcoming', label: 'Upcoming Festivals', icon: <HiOutlineCalendar className="w-5 h-5" /> },
-    { key: 'explore', label: 'Explore', icon: <HiOutlineSearch className="w-5 h-5" /> },
+    { key: 'tickets', label: 'My Tickets', icon: <HiOutlineTicket style={{ width: '18px', height: '18px' }} /> },
+    { key: 'upcoming', label: 'Upcoming Festivals', icon: <HiOutlineCalendar style={{ width: '18px', height: '18px' }} /> },
+    { key: 'explore', label: 'Explore', icon: <HiOutlineSearch style={{ width: '18px', height: '18px' }} /> },
   ];
 
-  return (
-    <div className="min-h-screen bg-bg-base pt-[80px] pb-20 animate-fade-in relative overflow-hidden">
-      
-      {/* Background Decor */}
-      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[rgba(124,58,237,0.1)] rounded-full filter blur-[120px] pointer-events-none" />
+  const cardStyle = {
+    background: 'var(--bg-lighter)',
+    border: '1.5px solid var(--border-light)',
+    borderRadius: '14px',
+    padding: '20px',
+    transition: 'all 0.3s ease',
+    boxShadow: '0 2px 8px rgba(26,21,16,0.04)',
+  };
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
-        
-        {/* Welcome Section */}
-        <div className="mb-10">
-          <h1 className="text-[32px] md:text-[40px] font-[800] tracking-[-0.02em] text-text-primary mb-2">
-            Welcome back, <span className="bg-accent-gradient bg-clip-text text-transparent">{user?.name?.split(' ')[0]}</span>
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--bg-light)', paddingTop: '80px', paddingBottom: '80px' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 24px' }}>
+
+        {/* Welcome */}
+        <div style={{ marginBottom: '32px' }}>
+          <h1 style={{
+            fontFamily: "'Playfair Display', serif",
+            fontSize: 'clamp(26px, 5vw, 38px)', fontWeight: '800',
+            color: 'var(--text-dark)', marginBottom: '6px',
+          }}>
+            Welcome back, <em style={{ color: 'var(--primary-terra)', fontStyle: 'italic' }}>{user?.name?.split(' ')[0]}</em>
           </h1>
-          <p className="text-[15px] text-text-muted font-[500]">{getTodayDate()}</p>
+          <p style={{ fontSize: '14px', color: 'var(--text-light)', fontFamily: "'Poppins', sans-serif" }}>{getTodayDate()}</p>
         </div>
 
-        {/* Profile Summary Card */}
-        <div className="bg-[rgba(255,255,255,0.02)] backdrop-blur-card border border-[rgba(255,255,255,0.08)] rounded-[20px] p-6 sm:p-8 mb-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 shadow-card hover:border-[rgba(255,255,255,0.12)] transition-colors">
-          <div className="flex items-center gap-6">
-            <div className="relative">
-              {user?.avatar ? (
-                <img src={user.avatar} alt={user.name} className="w-[80px] h-[80px] rounded-full object-cover ring-2 ring-transparent ring-offset-2 ring-offset-bg-base bg-accent-gradient p-[2px]" />
-              ) : (
-                <div className="w-[80px] h-[80px] rounded-full bg-accent-gradient flex items-center justify-center text-white text-[32px] font-[800] ring-4 ring-[rgba(124,58,237,0.2)]">
-                  {user?.name?.charAt(0)}
-                </div>
-              )}
-            </div>
+        {/* Profile card */}
+        <div style={{
+          ...cardStyle,
+          marginBottom: '32px',
+          display: 'flex', flexWrap: 'wrap',
+          alignItems: 'center', justifyContent: 'space-between', gap: '16px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+            {user?.avatar ? (
+              <img src={user.avatar} alt={user.name} style={{ width: '72px', height: '72px', borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--border-light)' }} />
+            ) : (
+              <div style={{
+                width: '72px', height: '72px', borderRadius: '50%',
+                background: 'linear-gradient(135deg, var(--primary-terra) 0%, var(--primary-light) 100%)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '26px', fontWeight: '800', color: 'white',
+                fontFamily: "'Poppins', sans-serif",
+              }}>
+                {user?.name?.charAt(0)}
+              </div>
+            )}
             <div>
-              <div className="flex items-center gap-3 mb-1">
-                <h2 className="text-[24px] font-[700] text-text-primary">{user?.name}</h2>
-                <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-[700] uppercase tracking-wider ${
-                  user?.role === 'admin' 
-                    ? 'bg-accent-gradient text-white shadow-glow-primary' 
-                    : 'bg-[rgba(255,255,255,0.06)] text-text-muted border border-[rgba(255,255,255,0.1)]'
-                }`}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+                <h2 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-dark)', fontFamily: "'Poppins', sans-serif" }}>{user?.name}</h2>
+                <span style={{
+                  padding: '2px 10px', borderRadius: '20px',
+                  fontSize: '11px', fontWeight: '700', textTransform: 'uppercase',
+                  letterSpacing: '0.06em', fontFamily: "'Poppins', sans-serif",
+                  background: user?.role === 'admin' ? 'linear-gradient(135deg, var(--primary-terra), var(--primary-light))' : 'var(--bg-light)',
+                  color: user?.role === 'admin' ? 'white' : 'var(--text-light)',
+                  border: user?.role === 'admin' ? 'none' : '1.5px solid var(--border-light)',
+                }}>
                   {user?.role === 'admin' ? 'Admin' : 'Member'}
                 </span>
               </div>
-              <p className="text-[14px] text-text-muted">{user?.email}</p>
+              <p style={{ fontSize: '13px', color: 'var(--text-light)', fontFamily: "'Poppins', sans-serif" }}>{user?.email}</p>
             </div>
           </div>
-          <Link
-            to="/profile"
-            className="inline-flex items-center justify-center gap-2 h-[44px] px-6 bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] text-white rounded-[12px] font-[600] text-[14px] hover:bg-[rgba(255,255,255,0.1)] transition-colors active:scale-[0.98] w-full sm:w-auto whitespace-nowrap"
+          <Link to="/profile" style={{
+            display: 'inline-flex', alignItems: 'center', gap: '6px',
+            height: '40px', padding: '0 20px',
+            background: 'var(--bg-light)', border: '1.5px solid var(--border-light)',
+            borderRadius: '10px', fontSize: '13px', fontWeight: '600',
+            color: 'var(--text-dark)', textDecoration: 'none',
+            transition: 'all 0.2s ease', fontFamily: "'Poppins', sans-serif",
+          }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--primary-terra)'; e.currentTarget.style.color = 'var(--primary-terra)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-light)'; e.currentTarget.style.color = 'var(--text-dark)'; }}
           >
-            <HiOutlinePencilAlt className="w-4 h-4 flex-shrink-0" /> Edit Profile
+            <HiOutlinePencilAlt style={{ width: '15px', height: '15px' }} /> Edit Profile
           </Link>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-8 overflow-x-auto pb-2 scrollbar-hide">
-          {tabs.map((tab) => (
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '28px', overflowX: 'auto', paddingBottom: '4px' }}>
+          {tabs.map(tab => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`inline-flex items-center justify-center gap-2 h-[48px] px-6 rounded-full text-[14px] font-[600] transition-all whitespace-nowrap border ${
-                activeTab === tab.key
-                  ? 'bg-[rgba(124,58,237,0.2)] text-white border-[rgba(124,58,237,0.4)] shadow-glow-primary'
-                  : 'bg-[rgba(255,255,255,0.02)] text-text-muted border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.06)] hover:text-text-primary'
-              }`}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                height: '44px', padding: '0 20px',
+                borderRadius: '22px', fontSize: '13px', fontWeight: '600',
+                cursor: 'pointer', whiteSpace: 'nowrap',
+                transition: 'all 0.2s ease', fontFamily: "'Poppins', sans-serif",
+                border: activeTab === tab.key ? 'none' : '1.5px solid var(--border-light)',
+                background: activeTab === tab.key ? 'linear-gradient(135deg, var(--primary-terra), var(--primary-light))' : 'var(--bg-lighter)',
+                color: activeTab === tab.key ? 'white' : 'var(--text-gray)',
+                boxShadow: activeTab === tab.key ? '0 4px 16px rgba(212,82,42,0.2)' : 'none',
+              }}
             >
               {tab.icon} {tab.label}
             </button>
           ))}
         </div>
 
-        {/* Tab Content */}
-        <div className="min-h-[400px]">
-          {/* My Tickets Tab */}
-          {activeTab === 'tickets' && (
-            <div>
-              {loading ? (
-                <div className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-[16px] p-5 animate-pulse flex gap-4">
-                      <div className="w-24 h-16 bg-[rgba(255,255,255,0.05)] rounded-lg" />
-                      <div className="flex-1 space-y-2">
-                        <div className="h-5 bg-[rgba(255,255,255,0.05)] rounded w-1/2" />
-                        <div className="h-4 bg-[rgba(255,255,255,0.05)] rounded w-1/3" />
-                      </div>
-                    </div>
-                  ))}
+        {/* Tickets Tab */}
+        {activeTab === 'tickets' && (
+          <div>
+            {loading ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {[1, 2, 3].map(i => (
+                  <div key={i} style={{ ...cardStyle, height: '100px', animation: 'pulse 1.5s ease infinite' }} />
+                ))}
+              </div>
+            ) : registrations.length === 0 ? (
+              <div style={{
+                ...cardStyle, textAlign: 'center',
+                padding: '60px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px',
+              }}>
+                <div style={{
+                  width: '64px', height: '64px', borderRadius: '50%',
+                  background: 'var(--bg-light)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <HiOutlineTicket style={{ width: '28px', height: '28px', color: 'var(--text-light)' }} />
                 </div>
-              ) : registrations.length === 0 ? (
-                <div className="text-center py-20 bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-[20px] backdrop-blur-card">
-                  <div className="w-20 h-20 rounded-full bg-[rgba(255,255,255,0.04)] flex items-center justify-center mx-auto mb-6">
-                    <HiOutlineTicket className="w-10 h-10 text-text-muted" />
-                  </div>
-                  <h3 className="text-[20px] font-[700] text-text-primary mb-2">
-                    No registrations yet
-                  </h3>
-                  <p className="text-[15px] text-text-muted mb-8 max-w-sm mx-auto">
-                    You haven't registered for any events yet. Discover amazing cultural festivals and book your spot!
-                  </p>
-                  <Link
-                    to="/events"
-                    className="inline-flex items-center justify-center gap-2 h-[48px] px-8 bg-accent-gradient text-white rounded-[12px] font-[600] hover:shadow-glow-primary transition-all active:scale-[0.98] whitespace-nowrap"
-                  >
-                    Explore Festivals
-                  </Link>
+                <div>
+                  <h3 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-dark)', fontFamily: "'Playfair Display', serif", marginBottom: '8px' }}>No tickets yet</h3>
+                  <p style={{ fontSize: '14px', color: 'var(--text-light)', fontFamily: "'Poppins', sans-serif" }}>Start exploring events and register to see your tickets here.</p>
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  {registrations.map((reg) => (
-                    <div
-                      key={reg._id}
-                      className="group bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-[16px] p-5 flex flex-col sm:flex-row gap-5 hover:bg-[rgba(255,255,255,0.03)] hover:border-[rgba(255,255,255,0.12)] transition-all"
-                    >
-                      <Link to={`/events/${reg.event?._id}`} className="shrink-0 overflow-hidden rounded-[12px]">
-                        <img
-                          src={
-                            reg.event?.thumbnail ||
-                            'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=200&q=80'
-                          }
-                          alt={reg.event?.title}
-                          className="w-full sm:w-[120px] h-[80px] object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      </Link>
-                      <div className="flex-1 min-w-0 flex flex-col justify-center">
-                        <Link
-                          to={`/events/${reg.event?._id}`}
-                          className="font-[700] text-[18px] text-text-primary hover:text-accent-cyan transition-colors truncate mb-1"
-                        >
-                          {reg.event?.title || 'Event'}
-                        </Link>
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[13px] text-text-muted mb-3">
-                          <span className="flex items-center gap-1.5"><HiOutlineCalendar /> {formatDate(reg.event?.date)}</span>
-                          <span className="flex items-center gap-1.5">📍 {reg.event?.venue}, {reg.event?.city}</span>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          <span className={`px-2.5 py-0.5 rounded-[6px] text-[11px] font-[700] uppercase tracking-wider border ${statusBadge(reg.status)}`}>
-                            {reg.status}
-                          </span>
-                          <span className={`px-2.5 py-0.5 rounded-[6px] text-[11px] font-[700] uppercase tracking-wider border ${paymentBadge(reg.paymentStatus)}`}>
-                            {reg.paymentStatus}
-                          </span>
+                <Link to="/events" style={{
+                  display: 'inline-flex', alignItems: 'center',
+                  padding: '10px 24px', borderRadius: '8px',
+                  background: 'linear-gradient(135deg, var(--primary-terra), var(--primary-light))',
+                  color: 'white', textDecoration: 'none',
+                  fontSize: '14px', fontWeight: '600', fontFamily: "'Poppins', sans-serif",
+                  boxShadow: '0 4px 16px rgba(212,82,42,0.2)',
+                }}>
+                  Browse Festivals
+                </Link>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {registrations.map(reg => {
+                  const sc = statusColors[reg.status] || { bg: 'var(--bg-light)', text: 'var(--text-light)', border: 'var(--border-light)' };
+                  return (
+                    <div key={reg._id} style={{
+                      ...cardStyle,
+                      display: 'flex', flexWrap: 'wrap', alignItems: 'center',
+                      justifyContent: 'space-between', gap: '14px',
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                        {reg.event?.thumbnail && (
+                          <img src={reg.event.thumbnail} alt="" style={{ width: '56px', height: '56px', borderRadius: '10px', objectFit: 'cover', flexShrink: 0 }} />
+                        )}
+                        <div>
+                          <h4 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-dark)', fontFamily: "'Poppins', sans-serif", marginBottom: '4px' }}>{reg.event?.title}</h4>
+                          <p style={{ fontSize: '12px', color: 'var(--text-light)', fontFamily: "'Poppins', sans-serif" }}>
+                            {reg.event?.date && formatDate(reg.event.date)} • {reg.event?.venue}
+                          </p>
                         </div>
                       </div>
-                      <div className="flex sm:flex-col gap-2 shrink-0 justify-center mt-4 sm:mt-0 pt-4 sm:pt-0 border-t border-[rgba(255,255,255,0.06)] sm:border-t-0 sm:pl-4 sm:border-l">
-                        {reg.qrCode && reg.status !== 'cancelled' && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                        <span style={{
+                          padding: '4px 12px', borderRadius: '20px',
+                          fontSize: '11px', fontWeight: '700', textTransform: 'uppercase',
+                          background: sc.bg, color: sc.text, border: `1px solid ${sc.border}`,
+                          fontFamily: "'Poppins', sans-serif",
+                        }}>
+                          {reg.status}
+                        </span>
+                        {reg.qrCode && reg.status === 'confirmed' && (
                           <button
                             onClick={() => setTicketModal(reg)}
-                            className="inline-flex items-center justify-center gap-2 flex-1 sm:flex-none h-[36px] px-4 bg-[rgba(124,58,237,0.15)] text-accent-primary border border-[rgba(124,58,237,0.3)] rounded-[8px] text-[13px] font-[600] hover:bg-[rgba(124,58,237,0.25)] transition-colors whitespace-nowrap"
+                            style={{
+                              height: '34px', padding: '0 14px',
+                              background: 'var(--bg-light)', border: '1.5px solid var(--border-light)',
+                              borderRadius: '8px', fontSize: '12px', fontWeight: '600',
+                              color: 'var(--primary-terra)', cursor: 'pointer',
+                              transition: 'all 0.2s ease', fontFamily: "'Poppins', sans-serif",
+                            }}
                           >
                             View Ticket
                           </button>
@@ -246,157 +242,197 @@ const Dashboard = () => {
                         {reg.status === 'confirmed' && (
                           <button
                             onClick={() => setCancelConfirm(reg._id)}
-                            className="inline-flex items-center justify-center gap-2 flex-1 sm:flex-none h-[36px] px-4 bg-transparent border border-[rgba(239,68,68,0.3)] text-danger rounded-[8px] text-[13px] font-[600] hover:bg-[rgba(239,68,68,0.1)] transition-colors whitespace-nowrap"
+                            style={{
+                              height: '34px', padding: '0 14px',
+                              background: 'transparent', border: '1.5px solid rgba(212,82,42,0.3)',
+                              borderRadius: '8px', fontSize: '12px', fontWeight: '600',
+                              color: 'var(--primary-terra)', cursor: 'pointer',
+                              transition: 'all 0.2s ease', fontFamily: "'Poppins', sans-serif",
+                            }}
                           >
                             Cancel
                           </button>
                         )}
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
-          {/* Upcoming Tab */}
-          {activeTab === 'upcoming' && (
-            <div>
-              {loading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {[1, 2, 3].map((i) => <SkeletonCard key={i} />)}
-                </div>
-              ) : upcoming.length === 0 ? (
-                <div className="text-center py-20 bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-[20px] backdrop-blur-card">
-                  <div className="w-20 h-20 rounded-full bg-[rgba(255,255,255,0.04)] flex items-center justify-center mx-auto mb-6">
-                    <HiOutlineCalendar className="w-10 h-10 text-text-muted" />
-                  </div>
-                  <h3 className="text-[20px] font-[700] text-text-primary mb-2">
-                    No upcoming events
-                  </h3>
-                  <p className="text-[15px] text-text-muted">Check back soon for new festivals!</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {upcoming.map((event) => (
-                    <EventCard key={event._id} event={event} />
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+        {/* Upcoming Tab */}
+        {activeTab === 'upcoming' && (
+          <div>
+            {loading ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
+                {[1, 2, 3].map(i => <SkeletonCard key={i} />)}
+              </div>
+            ) : upcoming.length === 0 ? (
+              <div style={{ ...cardStyle, textAlign: 'center', padding: '60px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+                <HiOutlineCalendar style={{ width: '40px', height: '40px', color: 'var(--text-light)' }} />
+                <h3 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-dark)', fontFamily: "'Playfair Display', serif" }}>No upcoming events</h3>
+                <p style={{ fontSize: '14px', color: 'var(--text-light)', fontFamily: "'Poppins', sans-serif" }}>Check back soon for new festivals!</p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
+                {upcoming.map(event => <EventCard key={event._id} event={event} />)}
+              </div>
+            )}
+          </div>
+        )}
 
-          {/* Explore Tab */}
-          {activeTab === 'explore' && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[
-                { to: '/events', icon: '🎭', title: 'All Festivals', desc: 'Browse all events', color: 'from-purple-500/20 to-indigo-500/20' },
-                { to: '/events?category=Classical+Music', icon: '🎵', title: 'Classical Music', desc: 'Carnatic & Hindustani', color: 'from-amber-500/20 to-orange-500/20' },
-                { to: '/events?category=Folk+Dance', icon: '💃', title: 'Folk Dance', desc: 'Garba, Bhangra & more', color: 'from-pink-500/20 to-rose-500/20' },
-                { to: '/gallery', icon: <HiOutlinePhotograph className="w-8 h-8 text-cyan-400" />, title: 'Gallery', desc: 'Event photography', color: 'from-cyan-500/20 to-blue-500/20' },
-              ].map((item, idx) => (
-                <Link
-                  key={idx}
-                  to={item.to}
-                  className="bg-[rgba(255,255,255,0.02)] rounded-[20px] p-6 border border-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.04)] hover:border-[rgba(255,255,255,0.12)] transition-all group hover:-translate-y-1"
-                >
-                  <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${item.color} border border-[rgba(255,255,255,0.05)] flex items-center justify-center text-[28px] mb-4 group-hover:scale-110 transition-transform`}>
-                    {item.icon}
-                  </div>
-                  <h3 className="text-[18px] font-[700] text-text-primary mb-1 group-hover:text-white transition-colors">
-                    {item.title}
-                  </h3>
-                  <p className="text-[14px] text-text-muted">{item.desc}</p>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Explore Tab */}
+        {activeTab === 'explore' && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '20px' }}>
+            {[
+              { to: '/events', icon: '🎭', title: 'All Festivals', desc: 'Browse all events' },
+              { to: '/events?category=Classical+Music', icon: '🎵', title: 'Classical Music', desc: 'Carnatic & Hindustani' },
+              { to: '/events?category=Folk+Dance', icon: '💃', title: 'Folk Dance', desc: 'Garba, Bhangra & more' },
+              { to: '/gallery', icon: '📷', title: 'Gallery', desc: 'Event photography' },
+            ].map((item, idx) => (
+              <Link
+                key={idx}
+                to={item.to}
+                style={{
+                  ...cardStyle,
+                  display: 'block', textDecoration: 'none',
+                  animationDelay: `${idx * 0.1}s`,
+                }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-6px)'; e.currentTarget.style.borderColor = 'var(--primary-terra)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(212,82,42,0.1)'; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--border-light)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(26,21,16,0.04)'; }}
+              >
+                <div style={{
+                  width: '48px', height: '48px', borderRadius: '10px',
+                  background: 'linear-gradient(135deg, rgba(212,82,42,0.1) 0%, rgba(232,131,94,0.08) 100%)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '22px', marginBottom: '12px',
+                }}>
+                  {item.icon}
+                </div>
+                <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-dark)', fontFamily: "'Poppins', sans-serif", marginBottom: '4px' }}>{item.title}</h3>
+                <p style={{ fontSize: '13px', color: 'var(--text-light)', fontFamily: "'Poppins', sans-serif" }}>{item.desc}</p>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Ticket Modal */}
       {ticketModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-fade-in">
-          <div className="bg-[rgba(10,10,15,0.95)] border border-[rgba(255,255,255,0.1)] rounded-[24px] max-w-sm w-full shadow-modal overflow-hidden animate-slide-up relative">
-            <button 
-              onClick={() => setTicketModal(null)}
-              className="absolute top-4 right-4 w-8 h-8 inline-flex items-center justify-center rounded-full bg-[rgba(255,255,255,0.1)] text-white hover:bg-[rgba(255,255,255,0.2)] transition-colors z-10"
-            >
-              <HiOutlineX className="w-5 h-5 flex-shrink-0" />
-            </button>
-            <div className="bg-accent-gradient p-6 text-center text-white relative overflow-hidden">
-              <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20"></div>
-              <h3 className="text-[20px] font-[800] relative z-10">🎫 Digital Ticket</h3>
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 50,
+          background: 'rgba(26,21,16,0.6)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px',
+        }} onClick={() => setTicketModal(null)}>
+          <div style={{
+            background: 'var(--bg-lighter)', borderRadius: '20px',
+            maxWidth: '380px', width: '100%',
+            border: '1.5px solid var(--border-light)',
+            boxShadow: '0 24px 60px rgba(26,21,16,0.2)', overflow: 'hidden',
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{
+              background: 'linear-gradient(135deg, var(--primary-terra), var(--primary-light))',
+              padding: '24px', textAlign: 'center', position: 'relative',
+            }}>
+              <button onClick={() => setTicketModal(null)} style={{
+                position: 'absolute', top: '12px', right: '12px',
+                width: '32px', height: '32px', borderRadius: '50%',
+                background: 'rgba(255,255,255,0.2)', border: 'none',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: 'white',
+              }}>
+                <HiOutlineX style={{ width: '16px', height: '16px' }} />
+              </button>
+              <h3 style={{ color: 'white', fontSize: '18px', fontWeight: '800', fontFamily: "'Poppins', sans-serif" }}>🎫 Digital Ticket</h3>
             </div>
-            <div className="p-8 text-center bg-[rgba(255,255,255,0.02)]">
-              <h4 className="text-[20px] font-[700] text-text-primary mb-2 leading-tight">
-                {ticketModal.event?.title}
-              </h4>
-              <p className="text-[14px] text-text-muted mb-6">
+            <div style={{ padding: '28px', textAlign: 'center' }}>
+              <h4 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-dark)', fontFamily: "'Poppins', sans-serif", marginBottom: '6px' }}>{ticketModal.event?.title}</h4>
+              <p style={{ fontSize: '13px', color: 'var(--text-light)', fontFamily: "'Poppins', sans-serif", marginBottom: '20px' }}>
                 {formatDate(ticketModal.event?.date)} • {ticketModal.event?.venue}
               </p>
-              
               {ticketModal.qrCode && (
-                <div className="bg-white p-3 rounded-[16px] inline-block mb-4 shadow-lg">
-                  <img
-                    src={ticketModal.qrCode}
-                    alt="QR Code"
-                    className="w-48 h-48"
-                  />
+                <div style={{ background: 'white', padding: '12px', borderRadius: '12px', display: 'inline-block', marginBottom: '16px', boxShadow: '0 2px 12px rgba(26,21,16,0.08)' }}>
+                  <img src={ticketModal.qrCode} alt="QR Code" style={{ width: '160px', height: '160px' }} />
                 </div>
               )}
-              
-              <div className="flex items-center justify-center gap-2 mb-8">
-                <div className="w-2 h-2 rounded-full bg-success animate-pulse"></div>
-                <p className="text-[13px] font-[600] text-success uppercase tracking-wider">Valid Entry Pass</p>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '20px' }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--sage)' }} />
+                <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: "'Poppins', sans-serif" }}>Valid Entry Pass</p>
               </div>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() => {
-                    const link = document.createElement('a');
-                    link.href = ticketModal.qrCode;
-                    link.download = `ticket-${ticketModal._id}.png`;
-                    link.click();
-                  }}
-                  className="inline-flex items-center justify-center gap-2 flex-1 h-[44px] bg-accent-gradient text-white rounded-[10px] text-[14px] font-[600] hover:shadow-glow-primary transition-all active:scale-[0.98] whitespace-nowrap"
-                >
-                  <HiOutlineDownload className="w-5 h-5 flex-shrink-0" /> Download QR
-                </button>
-              </div>
+              <button
+                onClick={() => { const link = document.createElement('a'); link.href = ticketModal.qrCode; link.download = `ticket-${ticketModal._id}.png`; link.click(); }}
+                style={{
+                  width: '100%', height: '44px',
+                  background: 'linear-gradient(135deg, var(--primary-terra), var(--primary-light))',
+                  color: 'white', border: 'none', borderRadius: '10px',
+                  fontSize: '14px', fontWeight: '600', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  fontFamily: "'Poppins', sans-serif",
+                  boxShadow: '0 4px 16px rgba(212,82,42,0.2)',
+                }}
+              >
+                <HiOutlineDownload style={{ width: '16px', height: '16px' }} /> Download QR
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Cancel Confirm Modal */}
+      {/* Cancel Modal */}
       {cancelConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-fade-in">
-          <div className="bg-[rgba(10,10,15,0.95)] border border-[rgba(255,255,255,0.1)] rounded-[20px] p-8 max-w-sm w-full shadow-modal animate-slide-up scale-95 origin-bottom text-center">
-            <div className="w-16 h-16 rounded-full bg-[rgba(239,68,68,0.1)] flex items-center justify-center mx-auto mb-5">
-              <span className="text-[32px]">⚠️</span>
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 50,
+          background: 'rgba(26,21,16,0.6)', backdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px',
+        }}>
+          <div style={{
+            background: 'var(--bg-lighter)', borderRadius: '20px',
+            maxWidth: '360px', width: '100%', padding: '36px 28px',
+            border: '1.5px solid var(--border-light)',
+            boxShadow: '0 24px 60px rgba(26,21,16,0.15)', textAlign: 'center',
+          }}>
+            <div style={{
+              width: '56px', height: '56px', borderRadius: '50%',
+              background: 'rgba(212,82,42,0.08)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              margin: '0 auto 16px', fontSize: '28px',
+            }}>
+              ⚠️
             </div>
-            <h3 className="text-[24px] font-[800] text-white mb-2">Cancel Registration?</h3>
-            <p className="text-[15px] text-text-muted mb-8 leading-relaxed">
-              Are you sure you want to cancel? This action cannot be undone and your spot will be given to someone else.
+            <h3 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-dark)', fontFamily: "'Playfair Display', serif", marginBottom: '10px' }}>Cancel Registration?</h3>
+            <p style={{ fontSize: '14px', color: 'var(--text-light)', fontFamily: "'Poppins', sans-serif", lineHeight: '1.6', marginBottom: '24px' }}>
+              Are you sure? This action cannot be undone and your spot will be given to someone else.
             </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setCancelConfirm(null)}
-                className="inline-flex items-center justify-center gap-2 flex-1 h-[48px] border border-[rgba(255,255,255,0.12)] text-text-primary rounded-[12px] font-[600] hover:bg-[rgba(255,255,255,0.06)] transition-all active:scale-[0.98] whitespace-nowrap"
-              >
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={() => setCancelConfirm(null)} style={{
+                flex: 1, height: '44px', background: 'var(--bg-light)',
+                border: '1.5px solid var(--border-light)', borderRadius: '10px',
+                fontSize: '14px', fontWeight: '600', color: 'var(--text-dark)', cursor: 'pointer',
+                fontFamily: "'Poppins', sans-serif",
+              }}>
                 Keep it
               </button>
-              <button
-                onClick={() => handleCancel(cancelConfirm)}
-                className="inline-flex items-center justify-center gap-2 flex-1 h-[48px] bg-danger text-white rounded-[12px] font-[600] hover:bg-red-600 transition-all shadow-[0_0_20px_rgba(239,68,68,0.3)] active:scale-[0.98] whitespace-nowrap"
-              >
+              <button onClick={() => handleCancel(cancelConfirm)} style={{
+                flex: 1, height: '44px',
+                background: 'linear-gradient(135deg, #E05C3A, var(--primary-terra))',
+                border: 'none', borderRadius: '10px',
+                fontSize: '14px', fontWeight: '600', color: 'white', cursor: 'pointer',
+                boxShadow: '0 4px 16px rgba(212,82,42,0.2)',
+                fontFamily: "'Poppins', sans-serif",
+              }}>
                 Yes, Cancel
               </button>
             </div>
           </div>
         </div>
       )}
+
+      <style>{`
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+      `}</style>
     </div>
   );
 };
