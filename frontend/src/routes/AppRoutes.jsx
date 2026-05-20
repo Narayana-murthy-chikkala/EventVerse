@@ -53,7 +53,7 @@ const AppRoutes = () => {
   const shouldHideLayout = hideLayoutRoutes.includes(location.pathname);
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#020408] text-white">
+    <div className="flex flex-col min-h-screen">
       {/* Navbar */}
       {!shouldHideLayout && <Navbar />}
 

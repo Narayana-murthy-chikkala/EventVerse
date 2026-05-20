@@ -119,7 +119,7 @@ const css = `
   }
 
   .event-card-title {
-    font-family: 'Playfair Display', serif;
+    font-family: 'DM Sans', serif;
     font-size: 19px;
     font-weight: 800;
     color: var(--text-dark);
@@ -274,7 +274,7 @@ const EventCard = ({ event }) => {
   return (
     <div className="event-card-root" onClick={() => navigate(`/events/${event._id}`)}>
       <style>{css}</style>
-      
+
       {/* Thumbnail */}
       <div className="event-card-thumbnail-container">
         {thumbnailUrl ? (
@@ -282,13 +282,13 @@ const EventCard = ({ event }) => {
         ) : (
           <div className="w-full h-full event-card-img" style={{ background: fallbackImage }} />
         )}
-        
+
         {/* Badges Overlay */}
         <div className="event-card-badge-row">
           <span className={`card-category-badge ${getCategoryStyles(event.category)}`}>
             {event.category}
           </span>
-          
+
           <div className="flex flex-col items-end gap-1.5">
             {event.isFeatured && (
               <span className="card-featured-badge">
@@ -337,9 +337,9 @@ const EventCard = ({ event }) => {
               {isSoldOut ? 'Capacity Reached' : `${spotsLeft} spots left`}
             </span>
             <div className="event-card-progress-bg">
-              <div 
+              <div
                 className="h-full rounded-full transition-all duration-1000 ease-out"
-                style={{ 
+                style={{
                   width: `${fillPercentage}%`,
                   backgroundColor: getCapacityColor(fillPercentage)
                 }}

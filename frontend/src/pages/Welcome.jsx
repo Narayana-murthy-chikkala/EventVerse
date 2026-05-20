@@ -133,7 +133,7 @@ const css = `
   /* Each letter is wrapped in a span for stagger */
   .wv-letter {
     display: inline-block;
-    font-family: 'Playfair Display', serif;
+    font-family: 'DM Sans', sans-serif;
     font-size: clamp(48px, 10.5vw, 124px);
     line-height: 1;
     letter-spacing: -0.02em;
@@ -210,7 +210,7 @@ const css = `
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
     z-index: 0;
-    font-family: 'Playfair Display', serif;
+    font-family: 'DM Sans', sans-serif;
     font-weight: 900;
     font-size: clamp(120px, 28vw, 340px);
     letter-spacing: -0.03em;
