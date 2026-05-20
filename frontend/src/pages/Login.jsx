@@ -39,6 +39,10 @@ const Login = () => {
     }
   };
 
+  const handleGoogleLogin = () => {
+    window.location.href = 'http://localhost:5000/api/auth/google';
+  };
+
   return (
     <div
       style={{
@@ -69,7 +73,7 @@ const Login = () => {
 
       {/* Logo */}
       <Link
-        to="/"
+        to="/home"
         style={{
           display: 'flex', alignItems: 'center', gap: '10px',
           marginBottom: '40px', textDecoration: 'none',
@@ -248,6 +252,7 @@ const Login = () => {
 
         {/* Google OAuth */}
         <button
+          type="button"
           style={{
             width: '100%', height: '48px',
             background: 'var(--bg-lighter)',
@@ -260,6 +265,12 @@ const Login = () => {
           }}
           onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--primary-terra)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(212,82,42,0.08)'; }}
           onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-light)'; e.currentTarget.style.boxShadow = 'none'; }}
+          onClick={() => {
+            window.open(
+              "http://localhost:5000/api/auth/google",
+              "_self"
+            );
+          }}
         >
           <svg style={{ width: '18px', height: '18px', flexShrink: 0 }} viewBox="0 0 24 24">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />

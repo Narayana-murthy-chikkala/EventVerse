@@ -26,10 +26,10 @@ import {
   Pie,
   Cell,
 } from 'recharts';
-import { 
-  HiOutlineChartBar, 
-  HiOutlineCollection, 
-  HiOutlineUsers, 
+import {
+  HiOutlineChartBar,
+  HiOutlineCollection,
+  HiOutlineUsers,
   HiOutlineTicket,
   HiOutlinePlus,
   HiOutlineSearch,
@@ -37,7 +37,7 @@ import {
   HiOutlineTrash,
   HiOutlineStar,
   HiStar,
-  HiOutlineX
+  HiOutlineX,
 } from 'react-icons/hi';
 
 const CATEGORIES = [
@@ -47,17 +47,1123 @@ const CATEGORIES = [
   'Film Festival', 'Spiritual & Religious', 'Other',
 ];
 
-const COLORS = ['#A855F7', '#06B6D4', '#10B981', '#F59E0B', '#EF4444', '#EC4899', '#8B5CF6', '#3B82F6', '#14B8A6', '#F97316', '#6366F1', '#D946EF'];
+const COLORS = ['#E8A838', '#D4623A', '#7B9E5A', '#5A7DB5', '#9B6BB5', '#5ABDB5', '#B55A7D', '#7DB55A', '#B5935A', '#5A95B5', '#B55A5A', '#7D7DB5'];
+
+const styles = `
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;500;600;700;800&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0D0D0E;
+    --bg-2:      #121214;
+    --bg-3:      #161618;
+    --bg-4:      #1C1C1F;
+    --border:    rgba(255,255,255,0.07);
+    --border-md: rgba(255,255,255,0.12);
+    --border-lg: rgba(255,255,255,0.18);
+    --amber:     #E8A838;
+    --amber-dim: rgba(232,168,56,0.12);
+    --amber-glow:rgba(232,168,56,0.06);
+    --text-1:    #F0EDE8;
+    --text-2:    #9B998F;
+    --text-3:    #5C5A54;
+    --red:       #D4523A;
+    --red-dim:   rgba(212,82,58,0.12);
+    --green:     #5A9E6A;
+    --green-dim: rgba(90,158,106,0.12);
+    --blue:      #5A8DB5;
+    --blue-dim:  rgba(90,141,181,0.12);
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    font-family: 'Syne', sans-serif;
+  }
+
+  .adm-root {
+    min-height: 100vh;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    padding-top: 70px;
+  }
+
+  @media (min-width: 768px) {
+    .adm-root { flex-direction: row; }
+  }
+
+  /* ── SIDEBAR ── */
+  .adm-sidebar {
+    width: 100%;
+    background: var(--bg-2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    z-index: 20;
+    position: relative;
+  }
+
+  @media (min-width: 768px) {
+    .adm-sidebar {
+      width: 220px;
+      height: calc(100vh - 70px);
+      position: sticky;
+      top: 70px;
+    }
+  }
+
+  .adm-sidebar-mark {
+    display: none;
+    padding: 28px 24px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  @media (min-width: 768px) {
+    .adm-sidebar-mark { display: block; }
+  }
+
+  .adm-sidebar-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 4px;
+  }
+
+  .adm-sidebar-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-1);
+    letter-spacing: 0.02em;
+  }
+
+  .adm-nav {
+    display: flex;
+    flex-direction: row;
+    padding: 12px;
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-shrink: 0;
+  }
+
+  .adm-nav::-webkit-scrollbar { display: none; }
+
+  @media (min-width: 768px) {
+    .adm-nav {
+      flex-direction: column;
+      padding: 16px 12px;
+      overflow-x: visible;
+      overflow-y: auto;
+      flex: 1;
+    }
+  }
+
+  .adm-nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text-3);
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+    letter-spacing: 0.02em;
+  }
+
+  .adm-nav-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  .adm-nav-btn:hover {
+    background: var(--bg-4);
+    color: var(--text-1);
+    border-color: var(--border);
+  }
+
+  .adm-nav-btn.active {
+    background: var(--amber-dim);
+    color: var(--amber);
+    border-color: rgba(232,168,56,0.2);
+  }
+
+  .adm-nav-btn.active svg { color: var(--amber); }
+
+  /* ── MAIN ── */
+  .adm-main {
+    flex: 1;
+    padding: 32px 24px;
+    overflow-y: auto;
+    position: relative;
+  }
+
+  @media (min-width: 1024px) {
+    .adm-main { padding: 40px 48px; }
+  }
+
+  @media (min-width: 768px) {
+    .adm-main { height: calc(100vh - 70px); }
+  }
+
+  /* ── PAGE HEADER ── */
+  .adm-page-header {
+    margin-bottom: 36px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .adm-page-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 6px;
+  }
+
+  .adm-page-title {
+    font-size: clamp(22px, 3vw, 30px);
+    font-weight: 800;
+    color: var(--text-1);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+
+  .adm-page-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-3);
+    margin-top: 4px;
+  }
+
+  /* ── METRIC CARDS ── */
+  .adm-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .adm-metric-card {
+    background: var(--bg-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .adm-metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent-line, var(--amber));
+    opacity: 0.6;
+  }
+
+  .adm-metric-card:hover { border-color: var(--border-md); }
+
+  .adm-metric-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    font-size: 16px;
+  }
+
+  .adm-metric-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 4px;
+  }
+
+  .adm-metric-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--text-1);
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  /* ── CHARTS ── */
+  .adm-charts {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  @media (min-width: 1024px) {
+    .adm-charts { grid-template-columns: 1fr 1fr; }
+  }
+
+  .adm-chart-card {
+    background: var(--bg-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+  }
+
+  .adm-chart-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 20px;
+  }
+
+  /* ── DATA TABLE CARD ── */
+  .adm-table-card {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .adm-table-head {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .adm-table-head-text { }
+
+  .adm-table-head-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-1);
+    letter-spacing: -0.01em;
+  }
+
+  .adm-table-head-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-3);
+    margin-top: 2px;
+  }
+
+  .adm-table-wrap { overflow-x: auto; }
+
+  table.adm-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+  }
+
+  table.adm-table th {
+    padding: 10px 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-3);
+    text-align: left;
+    font-weight: 400;
+  }
+
+  table.adm-table th.right { text-align: right; }
+  table.adm-table th.center { text-align: center; }
+
+  table.adm-table td {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--text-2);
+    vertical-align: middle;
+  }
+
+  table.adm-table tr:last-child td { border-bottom: none; }
+
+  table.adm-table tr:hover td { background: rgba(255,255,255,0.015); }
+
+  table.adm-table .td-right { text-align: right; }
+  table.adm-table .td-center { text-align: center; }
+
+  /* ── BADGE ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 500;
+    border: 1px solid;
+  }
+
+  .badge-green {
+    color: var(--green);
+    background: var(--green-dim);
+    border-color: rgba(90,158,106,0.2);
+  }
+
+  .badge-amber {
+    color: var(--amber);
+    background: var(--amber-dim);
+    border-color: rgba(232,168,56,0.2);
+  }
+
+  .badge-red {
+    color: var(--red);
+    background: var(--red-dim);
+    border-color: rgba(212,82,58,0.2);
+  }
+
+  .badge-gray {
+    color: var(--text-3);
+    background: rgba(255,255,255,0.04);
+    border-color: var(--border);
+  }
+
+  .badge-blue {
+    color: var(--blue);
+    background: var(--blue-dim);
+    border-color: rgba(90,141,181,0.2);
+  }
+
+  /* ── BUTTONS ── */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 38px;
+    padding: 0 18px;
+    background: var(--amber);
+    color: #0D0D0E;
+    border: none;
+    border-radius: var(--radius-md);
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    letter-spacing: 0.02em;
+  }
+
+  .btn-primary svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  .btn-primary:hover { background: #F0B84A; }
+  .btn-primary:active { transform: scale(0.97); }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 14px;
+    background: transparent;
+    color: var(--text-2);
+    border: 1px solid var(--border-md);
+    border-radius: var(--radius-md);
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn-ghost:hover {
+    background: var(--bg-4);
+    color: var(--text-1);
+    border-color: var(--border-lg);
+  }
+
+  .btn-ghost:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .btn-icon {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-3);
+    cursor: pointer;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+
+  .btn-icon svg { width: 15px; height: 15px; }
+
+  .btn-icon:hover { border-color: var(--border-md); color: var(--text-1); background: var(--bg-4); }
+
+  .btn-icon.danger:hover {
+    border-color: rgba(212,82,58,0.4);
+    color: var(--red);
+    background: var(--red-dim);
+  }
+
+  .btn-icon.edit:hover {
+    border-color: rgba(232,168,56,0.4);
+    color: var(--amber);
+    background: var(--amber-dim);
+  }
+
+  .btn-icon.star-active {
+    border-color: rgba(232,168,56,0.4);
+    color: var(--amber);
+    background: var(--amber-dim);
+  }
+
+  /* ── SEARCH INPUT ── */
+  .adm-search-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .adm-search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-3);
+    pointer-events: none;
+    width: 14px;
+    height: 14px;
+  }
+
+  .adm-search-input {
+    height: 36px;
+    width: 220px;
+    padding: 0 12px 0 32px;
+    background: var(--bg-4);
+    border: 1px solid var(--border-md);
+    border-radius: var(--radius-md);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-1);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .adm-search-input::placeholder { color: var(--text-3); }
+
+  .adm-search-input:focus {
+    border-color: rgba(232,168,56,0.4);
+    box-shadow: 0 0 0 3px rgba(232,168,56,0.06);
+  }
+
+  /* ── PAGINATION ── */
+  .adm-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  .adm-page-nums {
+    display: flex;
+    gap: 4px;
+  }
+
+  .adm-page-num {
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    background: transparent;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-3);
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+
+  .adm-page-num:hover { color: var(--text-1); background: var(--bg-4); }
+
+  .adm-page-num.active {
+    background: var(--amber-dim);
+    color: var(--amber);
+    border-color: rgba(232,168,56,0.25);
+  }
+
+  /* ── PROGRESS BAR ── */
+  .adm-progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .adm-progress-bar {
+    flex: 1;
+    height: 3px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 99px;
+    overflow: hidden;
+    min-width: 60px;
+    max-width: 80px;
+  }
+
+  .adm-progress-fill {
+    height: 100%;
+    background: var(--amber);
+    border-radius: 99px;
+    transition: width 0.3s;
+  }
+
+  .adm-progress-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-3);
+    white-space: nowrap;
+    min-width: 48px;
+  }
+
+  /* ── EVENT ROW IMAGE ── */
+  .adm-event-img {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+  }
+
+  .adm-event-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-1);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+  }
+
+  .adm-user-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--bg-4);
+    border: 1px solid var(--border-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-2);
+    flex-shrink: 0;
+  }
+
+  /* ── RECENT TABLES (stats tab) ── */
+  .adm-recent-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding-bottom: 40px;
+  }
+
+  @media (min-width: 1024px) {
+    .adm-recent-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  .adm-upcoming-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    transition: all 0.15s;
+  }
+
+  .adm-upcoming-item:hover {
+    background: var(--bg-4);
+    border-color: var(--border);
+  }
+
+  .adm-upcoming-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-1);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+    margin-bottom: 2px;
+  }
+
+  .adm-upcoming-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-3);
+  }
+
+  /* ── MODAL ── */
+  .adm-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: stretch;
+    justify-content: flex-end;
+    animation: fadeIn 0.2s ease;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .adm-modal-panel {
+    background: var(--bg-2);
+    border-left: 1px solid var(--border-md);
+    width: 100%;
+    max-width: 600px;
+    height: 100%;
+    overflow-y: auto;
+    padding: 32px;
+    animation: slideLeft 0.25s ease;
+    display: flex;
+    flex-direction: column;
+  }
+
+  @keyframes slideLeft {
+    from { transform: translateX(40px); opacity: 0; }
+    to   { transform: translateX(0);    opacity: 1; }
+  }
+
+  .adm-modal-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .adm-modal-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 4px;
+  }
+
+  .adm-modal-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-1);
+    letter-spacing: -0.02em;
+  }
+
+  /* ── FORM ── */
+  .adm-form-section {
+    margin-bottom: 28px;
+  }
+
+  .adm-form-section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .adm-form-section-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--amber);
+    background: var(--amber-dim);
+    border: 1px solid rgba(232,168,56,0.2);
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .adm-form-section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-1);
+    letter-spacing: 0.02em;
+  }
+
+  .adm-form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  @media (min-width: 480px) {
+    .adm-form-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  .adm-form-grid .span2 { grid-column: 1 / -1; }
+
+  .adm-field-label {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 6px;
+  }
+
+  .adm-input, .adm-select, .adm-textarea {
+    width: 100%;
+    background: var(--bg-4);
+    border: 1px solid var(--border-md);
+    border-radius: var(--radius-md);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--text-1);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .adm-input, .adm-select {
+    height: 40px;
+    padding: 0 12px;
+  }
+
+  .adm-textarea {
+    padding: 10px 12px;
+    resize: vertical;
+    line-height: 1.5;
+  }
+
+  .adm-select { color-scheme: dark; }
+  .adm-select option { background: var(--bg-3); }
+
+  .adm-input:focus, .adm-select:focus, .adm-textarea:focus {
+    border-color: rgba(232,168,56,0.5);
+    box-shadow: 0 0 0 3px rgba(232,168,56,0.07);
+  }
+
+  .adm-input::placeholder, .adm-textarea::placeholder { color: var(--text-3); }
+
+  /* toggle */
+  .adm-toggle-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+  }
+
+  .adm-toggle-track {
+    width: 36px;
+    height: 20px;
+    border-radius: 99px;
+    background: var(--bg-4);
+    border: 1px solid var(--border-md);
+    position: relative;
+    transition: background 0.2s, border-color 0.2s;
+    flex-shrink: 0;
+  }
+
+  .adm-toggle-track.on {
+    background: var(--amber-dim);
+    border-color: rgba(232,168,56,0.35);
+  }
+
+  .adm-toggle-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--text-3);
+    transition: transform 0.2s, background 0.2s;
+  }
+
+  .adm-toggle-track.on .adm-toggle-thumb {
+    transform: translateX(16px);
+    background: var(--amber);
+  }
+
+  .adm-toggle-label {
+    font-size: 13px;
+    color: var(--text-2);
+    font-weight: 500;
+    user-select: none;
+  }
+
+  /* upload zone */
+  .adm-upload-zone {
+    border: 1px dashed var(--border-md);
+    border-radius: var(--radius-lg);
+    padding: 28px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .adm-upload-zone:hover {
+    border-color: rgba(232,168,56,0.35);
+    background: var(--amber-glow);
+  }
+
+  .adm-upload-zone label { cursor: pointer; display: block; }
+
+  .adm-upload-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-md);
+    background: var(--bg-4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    color: var(--text-3);
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+  }
+
+  .adm-upload-zone:hover .adm-upload-icon {
+    border-color: rgba(232,168,56,0.35);
+    color: var(--amber);
+    background: var(--amber-dim);
+  }
+
+  .adm-upload-zone svg { width: 18px; height: 18px; }
+
+  .adm-upload-main-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-1);
+    margin-bottom: 3px;
+  }
+
+  .adm-upload-sub-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-3);
+    margin-bottom: 12px;
+  }
+
+  .adm-upload-chip {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 4px 12px;
+    background: var(--amber-dim);
+    color: var(--amber);
+    border: 1px solid rgba(232,168,56,0.2);
+    border-radius: 99px;
+    margin-top: 10px;
+  }
+
+  /* modal footer */
+  .adm-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 24px;
+    margin-top: 28px;
+    border-top: 1px solid var(--border);
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-2);
+    padding-bottom: 4px;
+  }
+
+  .btn-cancel {
+    height: 42px;
+    padding: 0 20px;
+    background: transparent;
+    border: 1px solid var(--border-md);
+    border-radius: var(--radius-md);
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-2);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-cancel:hover { background: var(--bg-4); color: var(--text-1); }
+
+  .btn-submit {
+    height: 42px;
+    padding: 0 24px;
+    background: var(--amber);
+    border: none;
+    border-radius: var(--radius-md);
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #0D0D0E;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-submit:hover { background: #F0B84A; }
+  .btn-submit:active { transform: scale(0.97); }
+  .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .spin {
+    width: 14px; height: 14px;
+    border: 2px solid rgba(13,13,14,0.25);
+    border-top-color: #0D0D0E;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── RECHARTS CUSTOM TOOLTIP ── */
+  .adm-tooltip {
+    background: var(--bg-2);
+    border: 1px solid var(--border-md);
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+  }
+
+  .adm-tooltip-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-3);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .adm-tooltip-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--amber);
+  }
+
+  /* ── PRICING BOX ── */
+  .adm-pricing-box {
+    background: var(--bg-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  @media (min-width: 480px) {
+    .adm-pricing-box { grid-template-columns: 1fr 1fr; }
+  }
+
+  .adm-pricing-box .span2 { grid-column: 1 / -1; }
+
+  /* ── SLIDE UP ── */
+  .slide-up {
+    animation: slideUp 0.22s ease both;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0);    }
+  }
+`;
+
+/* ─────────────────────────────────────────── */
+/* SUB-COMPONENTS */
+
+function CustomTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="adm-tooltip">
+      <p className="adm-tooltip-label">{label}</p>
+      <p className="adm-tooltip-val">{payload[0].value}</p>
+    </div>
+  );
+}
+
+function Toggle({ checked, onChange, label }) {
+  return (
+    <label className="adm-toggle-wrap" onClick={() => onChange(!checked)}>
+      <div className={`adm-toggle-track ${checked ? 'on' : ''}`}>
+        <div className="adm-toggle-thumb" />
+      </div>
+      <span className="adm-toggle-label">{label}</span>
+    </label>
+  );
+}
+
+function Pagination({ page, total, setPage }) {
+  if (total <= 1) return null;
+  return (
+    <div className="adm-pagination">
+      <button className="btn-ghost" disabled={page === 1} onClick={() => setPage(p => p - 1)}>← Prev</button>
+      <div className="adm-page-nums">
+        {Array.from({ length: total }, (_, i) => i + 1).map(p => (
+          <button key={p} className={`adm-page-num ${page === p ? 'active' : ''}`} onClick={() => setPage(p)}>{p}</button>
+        ))}
+      </div>
+      <button className="btn-ghost" disabled={page === total} onClick={() => setPage(p => p + 1)}>Next →</button>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────── */
+
+function initialEventForm() {
+  return {
+    title: '', description: '', shortDescription: '', category: 'Classical Music',
+    culturalOrigin: '', language: '', date: '', endDate: '', time: '', duration: '',
+    venue: '', address: '', city: '', state: '', price: 0, isFree: false,
+    earlyBirdPrice: '', earlyBirdDeadline: '', capacity: 100, waitlistEnabled: false,
+    videoUrl: '', tags: '', highlights: '', organizerNote: '', status: 'upcoming',
+    performers: [], schedule: [], images: [],
+  };
+}
+
+/* ─────────────────────────────────────────── */
 
 const AdminDashboard = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('stats');
   const [loading, setLoading] = useState(true);
 
-  // Stats State
   const [stats, setStats] = useState(null);
 
-  // Events State
   const [events, setEvents] = useState([]);
   const [eventsPage, setEventsPage] = useState(1);
   const [eventsTotal, setEventsTotal] = useState(1);
@@ -66,28 +1172,15 @@ const AdminDashboard = () => {
   const [eventFormData, setEventFormData] = useState(initialEventForm());
   const [eventSaving, setEventSaving] = useState(false);
 
-  // Users State
   const [users, setUsers] = useState([]);
   const [usersPage, setUsersPage] = useState(1);
   const [usersTotal, setUsersTotal] = useState(1);
   const [userSearch, setUserSearch] = useState('');
 
-  // Registrations State
   const [registrations, setRegistrations] = useState([]);
   const [regsPage, setRegsPage] = useState(1);
   const [regsTotal, setRegsTotal] = useState(1);
   const [regEventFilter, setRegEventFilter] = useState('');
-
-  function initialEventForm() {
-    return {
-      title: '', description: '', shortDescription: '', category: 'Classical Music',
-      culturalOrigin: '', language: '', date: '', endDate: '', time: '', duration: '',
-      venue: '', address: '', city: '', state: '', price: 0, isFree: false,
-      earlyBirdPrice: '', earlyBirdDeadline: '', capacity: 100, waitlistEnabled: false,
-      videoUrl: '', tags: '', highlights: '', organizerNote: '', status: 'upcoming',
-      performers: [], schedule: [], images: [] // images will be File objects for upload
-    };
-  }
 
   useEffect(() => {
     if (activeTab === 'stats') fetchStats();
@@ -98,14 +1191,9 @@ const AdminDashboard = () => {
 
   const fetchStats = async () => {
     setLoading(true);
-    try {
-      const res = await getAdminStats();
-      setStats(res.data.data);
-    } catch (err) {
-      toast.error('Failed to load stats');
-    } finally {
-      setLoading(false);
-    }
+    try { const res = await getAdminStats(); setStats(res.data.data); }
+    catch { toast.error('Failed to load stats'); }
+    finally { setLoading(false); }
   };
 
   const fetchEvents = async () => {
@@ -114,11 +1202,8 @@ const AdminDashboard = () => {
       const res = await getAllEvents({ page: eventsPage, limit: 10 });
       setEvents(res.data.data.events);
       setEventsTotal(res.data.data.totalPages);
-    } catch (err) {
-      toast.error('Failed to load events');
-    } finally {
-      setLoading(false);
-    }
+    } catch { toast.error('Failed to load events'); }
+    finally { setLoading(false); }
   };
 
   const fetchUsers = async () => {
@@ -127,11 +1212,8 @@ const AdminDashboard = () => {
       const res = await getAllUsers({ page: usersPage, limit: 10, search: userSearch });
       setUsers(res.data.data.users);
       setUsersTotal(res.data.data.totalPages);
-    } catch (err) {
-      toast.error('Failed to load users');
-    } finally {
-      setLoading(false);
-    }
+    } catch { toast.error('Failed to load users'); }
+    finally { setLoading(false); }
   };
 
   const fetchRegistrations = async () => {
@@ -140,33 +1222,19 @@ const AdminDashboard = () => {
       const res = await getAllAdminRegistrations({ page: regsPage, limit: 10, eventId: regEventFilter });
       setRegistrations(res.data.data.registrations);
       setRegsTotal(res.data.data.totalPages);
-    } catch (err) {
-      toast.error('Failed to load registrations');
-    } finally {
-      setLoading(false);
-    }
+    } catch { toast.error('Failed to load registrations'); }
+    finally { setLoading(false); }
   };
 
-  // Event Handlers
   const handleEventDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this event?')) return;
-    try {
-      await deleteEvent(id);
-      toast.success('Event deleted');
-      fetchEvents();
-    } catch (err) {
-      toast.error('Failed to delete event');
-    }
+    if (!window.confirm('Delete this event?')) return;
+    try { await deleteEvent(id); toast.success('Event deleted'); fetchEvents(); }
+    catch { toast.error('Failed to delete event'); }
   };
 
   const handleToggleFeatured = async (id) => {
-    try {
-      await toggleFeatured(id);
-      toast.success('Featured status updated');
-      fetchEvents();
-    } catch (err) {
-      toast.error('Failed to update status');
-    }
+    try { await toggleFeatured(id); toast.success('Featured status updated'); fetchEvents(); }
+    catch { toast.error('Failed to update status'); }
   };
 
   const openEventModal = (event = null) => {
@@ -179,7 +1247,7 @@ const AdminDashboard = () => {
         earlyBirdDeadline: event.earlyBirdDeadline ? new Date(event.earlyBirdDeadline).toISOString().split('T')[0] : '',
         tags: event.tags ? event.tags.join(', ') : '',
         highlights: event.highlights ? event.highlights.join('\n') : '',
-        images: [] // Reset images for file upload
+        images: [],
       });
     } else {
       setEventFormData(initialEventForm());
@@ -205,13 +1273,12 @@ const AdminDashboard = () => {
           formData.append(key, eventFormData[key]);
         }
       });
-
       if (currentEvent) {
         await updateEvent(currentEvent._id, formData);
-        toast.success('Event updated successfully');
+        toast.success('Event updated');
       } else {
         await createEvent(formData);
-        toast.success('Event created successfully');
+        toast.success('Event created');
       }
       setEventModalOpen(false);
       fetchEvents();
@@ -222,643 +1289,534 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleDynamicArrayChange = (field, index, subfield, value) => {
-    const updatedArray = [...eventFormData[field]];
-    updatedArray[index][subfield] = value;
-    setEventFormData({ ...eventFormData, [field]: updatedArray });
-  };
-
-  const addDynamicItem = (field, defaultObj) => {
-    setEventFormData({ ...eventFormData, [field]: [...eventFormData[field], defaultObj] });
-  };
-
-  const removeDynamicItem = (field, index) => {
-    const updatedArray = eventFormData[field].filter((_, i) => i !== index);
-    setEventFormData({ ...eventFormData, [field]: updatedArray });
-  };
-
-  // User Handlers
   const handleRoleToggle = async (id) => {
     if (id === user._id) return toast.error('Cannot change your own role');
-    try {
-      await updateUserRole(id);
-      toast.success('User role updated');
-      fetchUsers();
-    } catch (err) {
-      toast.error('Failed to update role');
-    }
+    try { await updateUserRole(id); toast.success('User role updated'); fetchUsers(); }
+    catch { toast.error('Failed to update role'); }
   };
 
   const handleUserDelete = async (id) => {
     if (id === user._id) return toast.error('Cannot delete yourself');
-    if (!window.confirm('Are you sure you want to delete this user?')) return;
-    try {
-      await deleteUser(id);
-      toast.success('User deleted');
-      fetchUsers();
-    } catch (err) {
-      toast.error('Failed to delete user');
-    }
+    if (!window.confirm('Delete this user?')) return;
+    try { await deleteUser(id); toast.success('User deleted'); fetchUsers(); }
+    catch { toast.error('Failed to delete user'); }
   };
 
   const tabs = [
-    { id: 'stats', label: 'Overview', icon: <HiOutlineChartBar className="w-5 h-5" /> },
-    { id: 'events', label: 'Events', icon: <HiOutlineCollection className="w-5 h-5" /> },
-    { id: 'users', label: 'Users', icon: <HiOutlineUsers className="w-5 h-5" /> },
-    { id: 'registrations', label: 'Registrations', icon: <HiOutlineTicket className="w-5 h-5" /> },
+    { id: 'stats',         label: 'Overview',       icon: <HiOutlineChartBar /> },
+    { id: 'events',        label: 'Events',          icon: <HiOutlineCollection /> },
+    { id: 'users',         label: 'Users',           icon: <HiOutlineUsers /> },
+    { id: 'registrations', label: 'Registrations',   icon: <HiOutlineTicket /> },
   ];
 
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-[rgba(10,10,15,0.95)] border border-[rgba(255,255,255,0.1)] p-3 rounded-[8px] shadow-lg">
-          <p className="text-[13px] text-text-muted mb-1">{label}</p>
-          <p className="text-[15px] font-[700] text-accent-cyan">{payload[0].value} <span className="text-[12px] font-[500] text-text-muted">registrations</span></p>
-        </div>
-      );
-    }
-    return null;
-  };
-
   return (
-    <div className="min-h-screen bg-bg-base flex flex-col md:flex-row pt-[70px] animate-fade-in">
-      {/* Sidebar */}
-      <aside className="w-full md:w-[260px] md:h-[calc(100vh-70px)] md:sticky md:top-[70px] border-r border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.01)] flex flex-col z-20">
-        <div className="p-6 pb-2 hidden md:block">
-          <h2 className="text-[12px] font-[700] uppercase tracking-[0.05em] text-text-subtle mb-4">Admin Panel</h2>
-        </div>
-        <nav className="flex flex-row md:flex-col p-4 md:p-4 gap-2 overflow-x-auto md:overflow-y-auto scrollbar-hide flex-1">
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`inline-flex items-center justify-start gap-3 px-4 py-3 rounded-[12px] text-[14px] font-[600] transition-all whitespace-nowrap flex-shrink-0 ${
-                activeTab === tab.id
-                  ? 'bg-[rgba(124,58,237,0.15)] text-accent-primary border border-[rgba(124,58,237,0.3)] shadow-[inset_0_0_20px_rgba(124,58,237,0.1)]'
-                  : 'text-text-muted hover:bg-[rgba(255,255,255,0.04)] hover:text-text-primary border border-transparent'
-              }`}
-            >
-              {tab.icon} {tab.label}
-            </button>
-          ))}
-        </nav>
-      </aside>
+    <>
+      <style>{styles}</style>
 
-      {/* Main Content */}
-      <main className="flex-1 p-4 sm:p-8 overflow-y-auto md:h-[calc(100vh-70px)] relative">
-        {/* Background Decor */}
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[rgba(124,58,237,0.08)] rounded-full filter blur-[120px] pointer-events-none" />
+      <div className="adm-root">
 
-        {loading && <FullscreenLoader />}
-
-        {!loading && activeTab === 'stats' && stats && (
-          <div className="space-y-8 relative z-10 animate-slide-up">
-            <div>
-              <h2 className="text-[28px] font-[800] text-text-primary mb-1">Dashboard Overview</h2>
-              <p className="text-[14px] text-text-muted">Platform metrics and recent activity</p>
-            </div>
-            
-            {/* Metric Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[
-                { title: 'Total Users', value: stats.totalUsers, icon: <HiOutlineUsers />, color: 'text-accent-primary', bg: 'bg-[rgba(124,58,237,0.15)]' },
-                { title: 'Total Events', value: stats.totalEvents, icon: <HiOutlineCollection />, color: 'text-accent-cyan', bg: 'bg-[rgba(6,182,212,0.15)]' },
-                { title: 'Registrations', value: stats.totalRegistrations, icon: <HiOutlineTicket />, color: 'text-warning', bg: 'bg-[rgba(245,158,11,0.15)]' },
-                { title: 'Total Revenue', value: `₹${stats.totalRevenue > 0 ? stats.totalRevenue[0].total.toLocaleString() : 0}`, icon: <HiOutlineChartBar />, color: 'text-success', bg: 'bg-[rgba(16,185,129,0.15)]' },
-              ].map((metric, idx) => (
-                <div key={idx} className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-[16px] p-6 backdrop-blur-card hover:-translate-y-1 transition-transform duration-300">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className={`w-12 h-12 rounded-[12px] flex items-center justify-center text-[24px] ${metric.bg} ${metric.color}`}>
-                      {metric.icon}
-                    </div>
-                  </div>
-                  <p className="text-[13px] font-[600] uppercase tracking-wider text-text-subtle mb-1">{metric.title}</p>
-                  <p className={`text-[32px] font-[800] ${idx === 3 ? 'text-success' : 'text-text-primary'} leading-none`}>{metric.value}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-[20px] p-6 backdrop-blur-card h-[400px]">
-                <h3 className="text-[16px] font-[700] text-text-primary mb-6">Monthly Registrations</h3>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={stats.monthlyRegistrations} margin={{ top: 0, right: 0, left: -20, bottom: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                    <XAxis dataKey="_id" stroke="var(--text-muted)" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} dy={10} />
-                    <YAxis stroke="var(--text-muted)" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
-                    <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.02)' }} />
-                    <Bar dataKey="count" fill="var(--accent-primary)" radius={[4, 4, 0, 0]} maxBarSize={50} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-[20px] p-6 backdrop-blur-card h-[400px] flex flex-col">
-                <h3 className="text-[16px] font-[700] text-text-primary mb-6">Events by Category</h3>
-                <div className="flex-1 relative pb-6">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={stats.categoryBreakdown}
-                        dataKey="count"
-                        nameKey="_id"
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={80}
-                        outerRadius={110}
-                        stroke="rgba(10,10,15,1)"
-                        strokeWidth={2}
-                      >
-                        {stats.categoryBreakdown.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <RechartsTooltip content={<CustomTooltip />} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none pb-6">
-                    <div className="text-center">
-                      <p className="text-[32px] font-[800] text-text-primary leading-none">{stats.totalEvents}</p>
-                      <p className="text-[12px] text-text-muted font-[600] uppercase tracking-wider">Events</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Recent Items */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-10">
-               <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-[20px] p-6 backdrop-blur-card overflow-hidden flex flex-col">
-                 <h3 className="text-[16px] font-[700] text-text-primary mb-6">Recent Registrations</h3>
-                 <div className="overflow-x-auto -mx-6 px-6">
-                   <table className="w-full text-left border-collapse min-w-[400px]">
-                     <thead>
-                       <tr>
-                         <th className="pb-4 text-[11px] font-[700] text-text-subtle uppercase tracking-wider border-b border-[rgba(255,255,255,0.06)]">User</th>
-                         <th className="pb-4 text-[11px] font-[700] text-text-subtle uppercase tracking-wider border-b border-[rgba(255,255,255,0.06)]">Event</th>
-                         <th className="pb-4 text-[11px] font-[700] text-text-subtle uppercase tracking-wider border-b border-[rgba(255,255,255,0.06)] text-right">Status</th>
-                       </tr>
-                     </thead>
-                     <tbody className="divide-y divide-[rgba(255,255,255,0.04)]">
-                       {stats.recentRegistrations.map(reg => (
-                         <tr key={reg._id} className="hover:bg-[rgba(255,255,255,0.01)] transition-colors">
-                           <td className="py-4">
-                             <p className="text-[14px] font-[600] text-text-primary">{reg.user?.name}</p>
-                           </td>
-                           <td className="py-4">
-                             <p className="text-[14px] text-text-muted truncate max-w-[150px] sm:max-w-[200px]" title={reg.event?.title}>{reg.event?.title}</p>
-                           </td>
-                           <td className="py-4 text-right">
-                             <span className={`inline-block px-2.5 py-1 rounded-[6px] text-[11px] font-[700] uppercase tracking-wider border ${reg.status === 'confirmed' ? 'bg-[rgba(16,185,129,0.1)] text-success border-[rgba(16,185,129,0.2)]' : 'bg-[rgba(255,255,255,0.05)] text-text-muted border-[rgba(255,255,255,0.1)]'}`}>
-                               {reg.status}
-                             </span>
-                           </td>
-                         </tr>
-                       ))}
-                     </tbody>
-                   </table>
-                 </div>
-               </div>
-
-               <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-[20px] p-6 backdrop-blur-card overflow-hidden flex flex-col">
-                 <h3 className="text-[16px] font-[700] text-text-primary mb-6">Upcoming Events</h3>
-                 <div className="space-y-1">
-                   {stats.upcomingEvents.map(event => {
-                     const fillPercent = Math.min((event.registeredCount/event.capacity)*100, 100);
-                     return (
-                       <div key={event._id} className="group flex justify-between items-center p-3 rounded-[12px] hover:bg-[rgba(255,255,255,0.03)] border border-transparent hover:border-[rgba(255,255,255,0.06)] transition-all">
-                         <div className="min-w-0 flex-1 pr-4">
-                           <p className="text-[14px] font-[600] text-text-primary truncate">{event.title}</p>
-                           <p className="text-[12px] text-text-muted">{new Date(event.date).toLocaleDateString()}</p>
-                         </div>
-                         <div className="shrink-0 text-right w-[80px]">
-                           <span className="text-[13px] font-[700] text-accent-cyan block mb-1">{event.registeredCount}/{event.capacity}</span>
-                           <div className="w-full h-1.5 bg-[rgba(255,255,255,0.1)] rounded-full overflow-hidden">
-                             <div className="h-full bg-accent-cyan rounded-full transition-all" style={{ width: `${fillPercent}%` }} />
-                           </div>
-                         </div>
-                       </div>
-                     );
-                   })}
-                 </div>
-               </div>
-            </div>
+        {/* ── SIDEBAR ── */}
+        <aside className="adm-sidebar">
+          <div className="adm-sidebar-mark">
+            <div className="adm-sidebar-label">Control</div>
+            <div className="adm-sidebar-title">Admin Panel</div>
           </div>
-        )}
-
-        {!loading && activeTab === 'events' && (
-          <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-[20px] backdrop-blur-card overflow-hidden animate-slide-up relative z-10 pb-4">
-            <div className="p-6 flex flex-col sm:flex-row justify-between items-center gap-4 border-b border-[rgba(255,255,255,0.06)]">
-              <div>
-                <h2 className="text-[20px] font-[800] text-text-primary">Manage Events</h2>
-                <p className="text-[13px] text-text-muted mt-1">Create and manage festival listings</p>
-              </div>
+          <nav className="adm-nav">
+            {tabs.map(tab => (
               <button
-                onClick={() => openEventModal()}
-                className="inline-flex items-center justify-center gap-2 h-[44px] px-6 bg-accent-gradient text-white rounded-[12px] font-[600] text-[14px] hover:shadow-glow-primary transition-all active:scale-[0.98] whitespace-nowrap"
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`adm-nav-btn ${activeTab === tab.id ? 'active' : ''}`}
               >
-                <HiOutlinePlus className="w-5 h-5 flex-shrink-0" /> New Festival
+                {tab.icon} {tab.label}
               </button>
-            </div>
-            
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse min-w-[800px]">
-                <thead>
-                  <tr className="bg-[rgba(255,255,255,0.01)]">
-                    <th className="px-6 py-4 text-[11px] font-[700] text-text-subtle uppercase tracking-wider border-b border-[rgba(255,255,255,0.06)]">Event</th>
-                    <th className="px-6 py-4 text-[11px] font-[700] text-text-subtle uppercase tracking-wider border-b border-[rgba(255,255,255,0.06)]">Date & Location</th>
-                    <th className="px-6 py-4 text-[11px] font-[700] text-text-subtle uppercase tracking-wider border-b border-[rgba(255,255,255,0.06)]">Price</th>
-                    <th className="px-6 py-4 text-[11px] font-[700] text-text-subtle uppercase tracking-wider border-b border-[rgba(255,255,255,0.06)]">Stats</th>
-                    <th className="px-6 py-4 text-[11px] font-[700] text-text-subtle uppercase tracking-wider border-b border-[rgba(255,255,255,0.06)] text-center">Featured</th>
-                    <th className="px-6 py-4 text-[11px] font-[700] text-text-subtle uppercase tracking-wider border-b border-[rgba(255,255,255,0.06)] text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[rgba(255,255,255,0.04)]">
-                  {events.map((event) => (
-                    <tr key={event._id} className="hover:bg-[rgba(255,255,255,0.02)] transition-colors group">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-4">
-                          <img src={event.thumbnail || 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=100&q=80'} alt={event.title} className="w-12 h-12 rounded-[10px] object-cover ring-1 ring-[rgba(255,255,255,0.1)]" />
-                          <div>
-                            <p className="font-[600] text-[15px] text-text-primary line-clamp-1 mb-0.5">{event.title}</p>
-                            <span className="px-2 py-0.5 rounded-[4px] bg-[rgba(255,255,255,0.06)] text-[11px] text-text-muted">{event.category}</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <p className="text-[14px] text-text-primary mb-0.5">{new Date(event.date).toLocaleDateString()}</p>
-                        <p className="text-[12px] text-text-muted">{event.city}</p>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`text-[14px] font-[600] ${event.isFree ? 'text-success' : 'text-text-primary'}`}>
-                          {event.isFree ? 'Free' : `₹${event.price}`}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-full bg-[rgba(255,255,255,0.1)] rounded-full h-1.5 min-w-[60px] max-w-[80px]">
-                            <div className="bg-accent-cyan h-1.5 rounded-full" style={{ width: `${Math.min((event.registeredCount/event.capacity)*100, 100)}%` }}></div>
-                          </div>
-                          <span className="text-[12px] text-text-muted font-[500] w-12">{event.registeredCount}/{event.capacity}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <button 
-                          onClick={() => handleToggleFeatured(event._id)} 
-                          className={`w-8 h-8 rounded-full inline-flex items-center justify-center mx-auto transition-colors ${event.isFeatured ? 'bg-[rgba(245,158,11,0.15)] text-warning' : 'text-text-muted hover:bg-[rgba(255,255,255,0.1)]'}`}
-                          title="Toggle Featured"
+            ))}
+          </nav>
+        </aside>
+
+        {/* ── MAIN ── */}
+        <main className="adm-main">
+          {loading && <FullscreenLoader />}
+
+          {/* ── STATS TAB ── */}
+          {!loading && activeTab === 'stats' && stats && (
+            <div className="slide-up">
+              <div className="adm-page-header">
+                <div>
+                  <div className="adm-page-eyebrow">Dashboard</div>
+                  <div className="adm-page-title">Overview</div>
+                  <div className="adm-page-sub">Platform-wide metrics</div>
+                </div>
+              </div>
+
+              {/* Metrics */}
+              <div className="adm-metrics">
+                {[
+                  { label: 'Total Users',    value: stats.totalUsers,          color: '#5A8DB5', accentLine: '#5A8DB5', icon: <HiOutlineUsers />,      bg: 'rgba(90,141,181,0.1)' },
+                  { label: 'Total Events',   value: stats.totalEvents,         color: '#E8A838', accentLine: '#E8A838', icon: <HiOutlineCollection />,  bg: 'rgba(232,168,56,0.1)' },
+                  { label: 'Registrations',  value: stats.totalRegistrations,  color: '#9B6BB5', accentLine: '#9B6BB5', icon: <HiOutlineTicket />,      bg: 'rgba(155,107,181,0.1)' },
+                  { label: 'Revenue',        value: `₹${(stats.totalRevenue || 0).toLocaleString()}`, color: '#5A9E6A', accentLine: '#5A9E6A', icon: <HiOutlineChartBar />, bg: 'rgba(90,158,106,0.1)' },
+                ].map((m, i) => (
+                  <div className="adm-metric-card" key={i} style={{ '--accent-line': m.accentLine }}>
+                    <div className="adm-metric-icon" style={{ background: m.bg, color: m.color }}>
+                      {m.icon}
+                    </div>
+                    <div className="adm-metric-label">{m.label}</div>
+                    <div className="adm-metric-value" style={{ color: m.color }}>{m.value}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Charts */}
+              <div className="adm-charts">
+                <div className="adm-chart-card" style={{ height: 320 }}>
+                  <div className="adm-chart-title">Monthly Registrations</div>
+                  <ResponsiveContainer width="100%" height="85%">
+                    <BarChart data={stats.monthlyRegistrations} margin={{ top: 0, right: 0, left: -20, bottom: 10 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.04)" />
+                      <XAxis dataKey="_id" stroke="#5C5A54" tick={{ fontSize: 10, fontFamily: 'DM Mono' }} tickLine={false} axisLine={false} dy={8} />
+                      <YAxis stroke="#5C5A54" tick={{ fontSize: 10, fontFamily: 'DM Mono' }} tickLine={false} axisLine={false} />
+                      <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.025)' }} />
+                      <Bar dataKey="count" fill="#E8A838" radius={[3, 3, 0, 0]} maxBarSize={40} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <div className="adm-chart-card" style={{ height: 320, display: 'flex', flexDirection: 'column' }}>
+                  <div className="adm-chart-title">Events by Category</div>
+                  <div style={{ flex: 1, position: 'relative' }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={stats.categoryBreakdown}
+                          dataKey="count"
+                          nameKey="_id"
+                          cx="50%" cy="50%"
+                          innerRadius={72}
+                          outerRadius={98}
+                          stroke="rgba(13,13,14,0.9)"
+                          strokeWidth={2}
                         >
-                          {event.isFeatured ? <HiStar className="w-5 h-5 flex-shrink-0" /> : <HiOutlineStar className="w-5 h-5 flex-shrink-0" />}
-                        </button>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button 
-                            onClick={() => openEventModal(event)} 
-                            className="w-8 h-8 rounded-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] inline-flex items-center justify-center text-text-primary hover:bg-[rgba(124,58,237,0.2)] hover:text-accent-primary hover:border-[rgba(124,58,237,0.4)] transition-all"
-                            title="Edit Event"
-                          >
-                            <HiOutlinePencilAlt className="w-4 h-4 flex-shrink-0" />
-                          </button>
-                          <button 
-                            onClick={() => handleEventDelete(event._id)} 
-                            className="w-8 h-8 rounded-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] inline-flex items-center justify-center text-text-primary hover:bg-[rgba(239,68,68,0.2)] hover:text-danger hover:border-[rgba(239,68,68,0.4)] transition-all"
-                            title="Delete Event"
-                          >
-                            <HiOutlineTrash className="w-4 h-4 flex-shrink-0" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination Controls */}
-            {eventsTotal > 1 && (
-              <div className="px-6 pt-6 flex justify-between items-center">
-                <button 
-                  disabled={eventsPage === 1} 
-                  onClick={() => setEventsPage(p => p - 1)} 
-                  className="inline-flex items-center justify-center gap-2 h-[36px] px-4 rounded-[8px] border border-[rgba(255,255,255,0.1)] text-[13px] font-[600] text-text-muted hover:text-white hover:bg-[rgba(255,255,255,0.04)] disabled:opacity-30 transition-colors whitespace-nowrap"
-                >
-                  Previous
-                </button>
-                <div className="flex gap-1">
-                  {Array.from({ length: eventsTotal }, (_, i) => i + 1).map(p => (
-                    <button
-                      key={p}
-                      onClick={() => setEventsPage(p)}
-                      className={`inline-flex items-center justify-center gap-2 w-8 h-8 rounded-[6px] text-[13px] font-[600] transition-colors whitespace-nowrap ${
-                        eventsPage === p 
-                          ? 'bg-[rgba(124,58,237,0.2)] text-accent-primary border border-[rgba(124,58,237,0.4)]' 
-                          : 'text-text-muted hover:bg-[rgba(255,255,255,0.06)] hover:text-white'
-                      }`}
-                    >
-                      {p}
-                    </button>
-                  ))}
+                          {stats.categoryBreakdown.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <RechartsTooltip content={<CustomTooltip />} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+                      <div style={{ textAlign: 'center' }}>
+                        <div style={{ fontFamily: 'DM Mono', fontSize: 26, fontWeight: 500, color: '#F0EDE8', lineHeight: 1 }}>{stats.totalEvents}</div>
+                        <div style={{ fontFamily: 'DM Mono', fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#5C5A54', marginTop: 4 }}>events</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <button 
-                  disabled={eventsPage === eventsTotal} 
-                  onClick={() => setEventsPage(p => p + 1)} 
-                  className="inline-flex items-center justify-center gap-2 h-[36px] px-4 rounded-[8px] border border-[rgba(255,255,255,0.1)] text-[13px] font-[600] text-text-muted hover:text-white hover:bg-[rgba(255,255,255,0.04)] disabled:opacity-30 transition-colors whitespace-nowrap"
-                >
-                  Next
-                </button>
               </div>
-            )}
-          </div>
-        )}
 
-        {!loading && activeTab === 'users' && (
-          <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-[20px] backdrop-blur-card overflow-hidden animate-slide-up relative z-10 pb-4">
-            <div className="p-6 flex flex-col sm:flex-row justify-between items-center gap-4 border-b border-[rgba(255,255,255,0.06)]">
-              <div>
-                <h2 className="text-[20px] font-[800] text-text-primary">Manage Users</h2>
-                <p className="text-[13px] text-text-muted mt-1">View and manage user roles</p>
-              </div>
-              <div className="relative w-full sm:w-64">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <HiOutlineSearch className="w-4 h-4 text-text-subtle" />
+              {/* Recent */}
+              <div className="adm-recent-grid">
+                <div className="adm-chart-card">
+                  <div className="adm-chart-title">Recent Registrations</div>
+                  <table className="adm-table" style={{ minWidth: 'unset', width: '100%' }}>
+                    <thead>
+                      <tr>
+                        <th>User</th>
+                        <th>Event</th>
+                        <th className="right">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {stats.recentRegistrations.map(reg => (
+                        <tr key={reg._id}>
+                          <td style={{ color: '#F0EDE8', fontWeight: 600, fontSize: 13 }}>{reg.user?.name}</td>
+                          <td style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{reg.event?.title}</td>
+                          <td className="td-right">
+                            <span className={`badge ${reg.status === 'confirmed' ? 'badge-green' : 'badge-gray'}`}>{reg.status}</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-                <input
-                  type="text"
-                  placeholder="Search users..."
-                  value={userSearch}
-                  onChange={(e) => setUserSearch(e.target.value)}
-                  className="w-full h-[40px] pl-10 pr-4 bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-[10px] text-[13px] text-text-primary placeholder-[rgba(255,255,255,0.3)] focus:outline-none focus:border-accent-primary focus:shadow-[0_0_0_2px_rgba(124,58,237,0.15)] transition-all"
-                />
-              </div>
-            </div>
-            
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse min-w-[600px]">
-                <thead>
-                  <tr className="bg-[rgba(255,255,255,0.01)]">
-                    <th className="px-6 py-4 text-[11px] font-[700] text-text-subtle uppercase tracking-wider border-b border-[rgba(255,255,255,0.06)]">User</th>
-                    <th className="px-6 py-4 text-[11px] font-[700] text-text-subtle uppercase tracking-wider border-b border-[rgba(255,255,255,0.06)]">Email</th>
-                    <th className="px-6 py-4 text-[11px] font-[700] text-text-subtle uppercase tracking-wider border-b border-[rgba(255,255,255,0.06)]">Role</th>
-                    <th className="px-6 py-4 text-[11px] font-[700] text-text-subtle uppercase tracking-wider border-b border-[rgba(255,255,255,0.06)]">Joined</th>
-                    <th className="px-6 py-4 text-[11px] font-[700] text-text-subtle uppercase tracking-wider border-b border-[rgba(255,255,255,0.06)] text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[rgba(255,255,255,0.04)]">
-                  {users.map((u) => (
-                    <tr key={u._id} className="hover:bg-[rgba(255,255,255,0.02)] transition-colors group">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] flex items-center justify-center text-text-primary font-[700] text-[16px]">
-                            {u.name.charAt(0)}
+
+                <div className="adm-chart-card">
+                  <div className="adm-chart-title">Upcoming Events</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {stats.upcomingEvents.map(event => {
+                      const fill = Math.min((event.registeredCount / event.capacity) * 100, 100);
+                      return (
+                        <div key={event._id} className="adm-upcoming-item">
+                          <div style={{ minWidth: 0, flex: 1, paddingRight: 16 }}>
+                            <div className="adm-upcoming-title">{event.title}</div>
+                            <div className="adm-upcoming-date">{new Date(event.date).toLocaleDateString()}</div>
                           </div>
-                          <span className="font-[600] text-[14px] text-text-primary">{u.name}</span>
+                          <div style={{ flexShrink: 0, textAlign: 'right' }}>
+                            <div className="adm-progress-wrap">
+                              <div className="adm-progress-bar">
+                                <div className="adm-progress-fill" style={{ width: `${fill}%` }} />
+                              </div>
+                              <span className="adm-progress-label">{event.registeredCount}/{event.capacity}</span>
+                            </div>
+                          </div>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 text-[14px] text-text-muted">{u.email}</td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2.5 py-1 rounded-full text-[11px] font-[700] uppercase tracking-wider border ${
-                          u.role === 'admin' 
-                            ? 'bg-[rgba(124,58,237,0.15)] text-accent-primary border-[rgba(124,58,237,0.3)]' 
-                            : 'bg-[rgba(255,255,255,0.05)] text-text-muted border-[rgba(255,255,255,0.1)]'
-                        }`}>
-                          {u.role}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-[13px] text-text-muted">
-                        {new Date(u.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          {u._id !== user._id && (
-                            <>
-                              <button 
-                                onClick={() => handleRoleToggle(u._id)} 
-                                className="inline-flex items-center justify-center gap-2 h-[32px] px-3 rounded-[6px] bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] text-[12px] font-[600] text-text-primary hover:bg-[rgba(124,58,237,0.2)] hover:text-accent-primary hover:border-[rgba(124,58,237,0.4)] transition-all whitespace-nowrap"
-                              >
-                                Toggle Role
-                              </button>
-                              <button 
-                                onClick={() => handleUserDelete(u._id)} 
-                                className="w-[32px] h-[32px] rounded-[6px] bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] inline-flex items-center justify-center text-text-primary hover:bg-[rgba(239,68,68,0.2)] hover:text-danger hover:border-[rgba(239,68,68,0.4)] transition-all"
-                                title="Delete User"
-                              >
-                                <HiOutlineTrash className="w-4 h-4 flex-shrink-0" />
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            
-            {/* Pagination Controls */}
-            {usersTotal > 1 && (
-              <div className="px-6 pt-6 flex justify-between items-center">
-                <button disabled={usersPage === 1} onClick={() => setUsersPage(p => p - 1)} className="inline-flex items-center justify-center gap-2 h-[36px] px-4 rounded-[8px] border border-[rgba(255,255,255,0.1)] text-[13px] font-[600] text-text-muted hover:text-white hover:bg-[rgba(255,255,255,0.04)] disabled:opacity-30 transition-colors whitespace-nowrap">Prev</button>
-                <span className="text-[13px] text-text-muted font-[500]">Page {usersPage} of {usersTotal}</span>
-                <button disabled={usersPage === usersTotal} onClick={() => setUsersPage(p => p + 1)} className="inline-flex items-center justify-center gap-2 h-[36px] px-4 rounded-[8px] border border-[rgba(255,255,255,0.1)] text-[13px] font-[600] text-text-muted hover:text-white hover:bg-[rgba(255,255,255,0.04)] disabled:opacity-30 transition-colors whitespace-nowrap">Next</button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {!loading && activeTab === 'registrations' && (
-          <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-[20px] backdrop-blur-card overflow-hidden animate-slide-up relative z-10 pb-4">
-            <div className="p-6 flex flex-col sm:flex-row justify-between items-center gap-4 border-b border-[rgba(255,255,255,0.06)]">
-              <div>
-                <h2 className="text-[20px] font-[800] text-text-primary">Registrations</h2>
-                <p className="text-[13px] text-text-muted mt-1">View all ticket sales</p>
-              </div>
-              <div className="relative w-full sm:w-64">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <HiOutlineSearch className="w-4 h-4 text-text-subtle" />
+                      );
+                    })}
+                  </div>
                 </div>
-                <input
-                  type="text"
-                  placeholder="Filter by Event ID..."
-                  value={regEventFilter}
-                  onChange={(e) => setRegEventFilter(e.target.value)}
-                  className="w-full h-[40px] pl-10 pr-4 bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-[10px] text-[13px] text-text-primary placeholder-[rgba(255,255,255,0.3)] focus:outline-none focus:border-accent-primary focus:shadow-[0_0_0_2px_rgba(124,58,237,0.15)] transition-all"
-                />
               </div>
             </div>
-            
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse min-w-[700px]">
-                <thead>
-                  <tr className="bg-[rgba(255,255,255,0.01)]">
-                    <th className="px-6 py-4 text-[11px] font-[700] text-text-subtle uppercase tracking-wider border-b border-[rgba(255,255,255,0.06)]">Registrant</th>
-                    <th className="px-6 py-4 text-[11px] font-[700] text-text-subtle uppercase tracking-wider border-b border-[rgba(255,255,255,0.06)]">Event</th>
-                    <th className="px-6 py-4 text-[11px] font-[700] text-text-subtle uppercase tracking-wider border-b border-[rgba(255,255,255,0.06)]">Amount</th>
-                    <th className="px-6 py-4 text-[11px] font-[700] text-text-subtle uppercase tracking-wider border-b border-[rgba(255,255,255,0.06)]">Status</th>
-                    <th className="px-6 py-4 text-[11px] font-[700] text-text-subtle uppercase tracking-wider border-b border-[rgba(255,255,255,0.06)] text-right">Date</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[rgba(255,255,255,0.04)]">
-                  {registrations.map((r) => (
-                    <tr key={r._id} className="hover:bg-[rgba(255,255,255,0.02)] transition-colors">
-                      <td className="px-6 py-4">
-                        <p className="font-[600] text-[14px] text-text-primary mb-0.5">{r.user?.name}</p>
-                        <p className="text-[12px] text-text-muted">{r.user?.email}</p>
-                      </td>
-                      <td className="px-6 py-4">
-                        <p className="text-[14px] font-[500] text-text-primary line-clamp-1">{r.event?.title || r.event}</p>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-[14px] font-[600] text-white">₹{r.totalAmount}</span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-block px-2.5 py-1 rounded-[6px] text-[11px] font-[700] uppercase tracking-wider border ${r.status === 'confirmed' ? 'bg-[rgba(16,185,129,0.1)] text-success border-[rgba(16,185,129,0.2)]' : 'bg-[rgba(239,68,68,0.1)] text-danger border-[rgba(239,68,68,0.2)]'}`}>
-                          {r.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right text-[13px] text-text-muted">
-                        {new Date(r.registeredAt).toLocaleDateString()}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          )}
 
-            {/* Pagination Controls */}
-            {regsTotal > 1 && (
-              <div className="px-6 pt-6 flex justify-between items-center">
-                <button disabled={regsPage === 1} onClick={() => setRegsPage(p => p - 1)} className="inline-flex items-center justify-center gap-2 h-[36px] px-4 rounded-[8px] border border-[rgba(255,255,255,0.1)] text-[13px] font-[600] text-text-muted hover:text-white hover:bg-[rgba(255,255,255,0.04)] disabled:opacity-30 transition-colors whitespace-nowrap">Prev</button>
-                <span className="text-[13px] text-text-muted font-[500]">Page {regsPage} of {regsTotal}</span>
-                <button disabled={regsPage === regsTotal} onClick={() => setRegsPage(p => p + 1)} className="inline-flex items-center justify-center gap-2 h-[36px] px-4 rounded-[8px] border border-[rgba(255,255,255,0.1)] text-[13px] font-[600] text-text-muted hover:text-white hover:bg-[rgba(255,255,255,0.04)] disabled:opacity-30 transition-colors whitespace-nowrap">Next</button>
+          {/* ── EVENTS TAB ── */}
+          {!loading && activeTab === 'events' && (
+            <div className="slide-up">
+              <div className="adm-page-header">
+                <div>
+                  <div className="adm-page-eyebrow">Management</div>
+                  <div className="adm-page-title">Events</div>
+                  <div className="adm-page-sub">Create and manage festival listings</div>
+                </div>
+                <button className="btn-primary" onClick={() => openEventModal()}>
+                  <HiOutlinePlus /> New Festival
+                </button>
               </div>
-            )}
-          </div>
-        )}
-      </main>
 
-      {/* Event Form Modal */}
+              <div className="adm-table-card">
+                <div className="adm-table-wrap">
+                  <table className="adm-table" style={{ minWidth: 820 }}>
+                    <thead>
+                      <tr>
+                        <th>Event</th>
+                        <th>Date & City</th>
+                        <th>Price</th>
+                        <th>Capacity</th>
+                        <th className="center">Featured</th>
+                        <th className="right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {events.map(event => {
+                        const fill = Math.min((event.registeredCount / event.capacity) * 100, 100);
+                        return (
+                          <tr key={event._id}>
+                            <td>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                <img
+                                  src={event.thumbnail || 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=100&q=80'}
+                                  alt={event.title}
+                                  className="adm-event-img"
+                                />
+                                <div>
+                                  <div className="adm-event-name">{event.title}</div>
+                                  <span className="badge badge-gray" style={{ marginTop: 4 }}>{event.category}</span>
+                                </div>
+                              </div>
+                            </td>
+                            <td>
+                              <div style={{ fontFamily: 'DM Mono', fontSize: 12, color: '#F0EDE8' }}>{new Date(event.date).toLocaleDateString()}</div>
+                              <div style={{ fontFamily: 'DM Mono', fontSize: 11, color: '#5C5A54', marginTop: 2 }}>{event.city}</div>
+                            </td>
+                            <td>
+                              <span style={{ fontFamily: 'DM Mono', fontSize: 13, fontWeight: 500, color: event.isFree ? '#5A9E6A' : '#F0EDE8' }}>
+                                {event.isFree ? 'Free' : `₹${event.price}`}
+                              </span>
+                            </td>
+                            <td>
+                              <div className="adm-progress-wrap">
+                                <div className="adm-progress-bar">
+                                  <div className="adm-progress-fill" style={{ width: `${fill}%` }} />
+                                </div>
+                                <span className="adm-progress-label">{event.registeredCount}/{event.capacity}</span>
+                              </div>
+                            </td>
+                            <td className="td-center">
+                              <button
+                                onClick={() => handleToggleFeatured(event._id)}
+                                className={`btn-icon ${event.isFeatured ? 'star-active' : ''}`}
+                                title="Toggle Featured"
+                              >
+                                {event.isFeatured ? <HiStar style={{ width: 15, height: 15 }} /> : <HiOutlineStar style={{ width: 15, height: 15 }} />}
+                              </button>
+                            </td>
+                            <td className="td-right">
+                              <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
+                                <button onClick={() => openEventModal(event)} className="btn-icon edit" title="Edit">
+                                  <HiOutlinePencilAlt />
+                                </button>
+                                <button onClick={() => handleEventDelete(event._id)} className="btn-icon danger" title="Delete">
+                                  <HiOutlineTrash />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                <Pagination page={eventsPage} total={eventsTotal} setPage={setEventsPage} />
+              </div>
+            </div>
+          )}
+
+          {/* ── USERS TAB ── */}
+          {!loading && activeTab === 'users' && (
+            <div className="slide-up">
+              <div className="adm-page-header">
+                <div>
+                  <div className="adm-page-eyebrow">Management</div>
+                  <div className="adm-page-title">Users</div>
+                  <div className="adm-page-sub">View and manage user roles</div>
+                </div>
+                <div className="adm-search-wrap">
+                  <HiOutlineSearch className="adm-search-icon" />
+                  <input
+                    type="text"
+                    placeholder="Search users..."
+                    value={userSearch}
+                    onChange={e => setUserSearch(e.target.value)}
+                    className="adm-search-input"
+                  />
+                </div>
+              </div>
+
+              <div className="adm-table-card">
+                <div className="adm-table-wrap">
+                  <table className="adm-table" style={{ minWidth: 600 }}>
+                    <thead>
+                      <tr>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Joined</th>
+                        <th className="right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map(u => (
+                        <tr key={u._id}>
+                          <td>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                              <div className="adm-user-avatar">{u.name.charAt(0)}</div>
+                              <span style={{ fontWeight: 600, fontSize: 13, color: '#F0EDE8' }}>{u.name}</span>
+                            </div>
+                          </td>
+                          <td style={{ fontFamily: 'DM Mono', fontSize: 12 }}>{u.email}</td>
+                          <td>
+                            <span className={`badge ${u.role === 'admin' ? 'badge-amber' : 'badge-gray'}`}>{u.role}</span>
+                          </td>
+                          <td style={{ fontFamily: 'DM Mono', fontSize: 11 }}>{new Date(u.createdAt).toLocaleDateString()}</td>
+                          <td className="td-right">
+                            {u._id !== user._id && (
+                              <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
+                                <button className="btn-ghost" onClick={() => handleRoleToggle(u._id)}>Toggle Role</button>
+                                <button className="btn-icon danger" onClick={() => handleUserDelete(u._id)} title="Delete">
+                                  <HiOutlineTrash />
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <Pagination page={usersPage} total={usersTotal} setPage={setUsersPage} />
+              </div>
+            </div>
+          )}
+
+          {/* ── REGISTRATIONS TAB ── */}
+          {!loading && activeTab === 'registrations' && (
+            <div className="slide-up">
+              <div className="adm-page-header">
+                <div>
+                  <div className="adm-page-eyebrow">Data</div>
+                  <div className="adm-page-title">Registrations</div>
+                  <div className="adm-page-sub">All ticket sales</div>
+                </div>
+                <div className="adm-search-wrap">
+                  <HiOutlineSearch className="adm-search-icon" />
+                  <input
+                    type="text"
+                    placeholder="Filter by Event ID..."
+                    value={regEventFilter}
+                    onChange={e => setRegEventFilter(e.target.value)}
+                    className="adm-search-input"
+                  />
+                </div>
+              </div>
+
+              <div className="adm-table-card">
+                <div className="adm-table-wrap">
+                  <table className="adm-table" style={{ minWidth: 700 }}>
+                    <thead>
+                      <tr>
+                        <th>Registrant</th>
+                        <th>Event</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th className="right">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {registrations.map(r => (
+                        <tr key={r._id}>
+                          <td>
+                            <div style={{ fontWeight: 600, fontSize: 13, color: '#F0EDE8' }}>{r.user?.name}</div>
+                            <div style={{ fontFamily: 'DM Mono', fontSize: 11, color: '#5C5A54', marginTop: 2 }}>{r.user?.email}</div>
+                          </td>
+                          <td style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.event?.title || r.event}</td>
+                          <td>
+                            <span style={{ fontFamily: 'DM Mono', fontSize: 13, fontWeight: 500, color: '#F0EDE8' }}>₹{r.totalAmount}</span>
+                          </td>
+                          <td>
+                            <span className={`badge ${r.status === 'confirmed' ? 'badge-green' : 'badge-red'}`}>{r.status}</span>
+                          </td>
+                          <td className="td-right" style={{ fontFamily: 'DM Mono', fontSize: 11 }}>
+                            {new Date(r.registeredAt).toLocaleDateString()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <Pagination page={regsPage} total={regsTotal} setPage={setRegsPage} />
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
+
+      {/* ── EVENT MODAL ── */}
       {eventModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-end animate-fade-in">
-          <div className="bg-bg-base border-l border-[rgba(255,255,255,0.1)] w-full max-w-2xl h-full overflow-y-auto shadow-[-20px_0_50px_rgba(0,0,0,0.5)] p-6 animate-slide-left">
-            <div className="flex justify-between items-center mb-8 pb-4 border-b border-[rgba(255,255,255,0.06)]">
-              <h2 className="text-[24px] font-[800] text-text-primary">{currentEvent ? 'Edit Festival' : 'Create New Festival'}</h2>
-              <button onClick={() => setEventModalOpen(false)} className="w-10 h-10 rounded-full flex items-center justify-center bg-[rgba(255,255,255,0.05)] text-text-muted hover:text-white hover:bg-[rgba(255,255,255,0.1)] transition-colors">
-                <HiOutlineX className="w-5 h-5" />
+        <div className="adm-modal-overlay" onClick={e => e.target === e.currentTarget && setEventModalOpen(false)}>
+          <div className="adm-modal-panel">
+            <div className="adm-modal-top">
+              <div>
+                <div className="adm-modal-eyebrow">{currentEvent ? 'Editing' : 'New Festival'}</div>
+                <div className="adm-modal-title">{currentEvent ? currentEvent.title : 'Create Festival'}</div>
+              </div>
+              <button className="btn-icon" onClick={() => setEventModalOpen(false)} style={{ flexShrink: 0 }}>
+                <HiOutlineX style={{ width: 16, height: 16 }} />
               </button>
             </div>
-            
-            <form onSubmit={handleEventSubmit} className="space-y-8">
-              {/* Form implementation uses dark inputs */}
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-[16px] font-[700] text-text-primary mb-4 flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-[rgba(124,58,237,0.2)] text-accent-primary flex items-center justify-center text-[12px]">1</span> Basic Details
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="md:col-span-2">
-                      <label className="block text-[13px] font-[600] text-text-muted tracking-wider uppercase mb-1.5">Title</label>
-                      <input required type="text" value={eventFormData.title} onChange={e => setEventFormData({...eventFormData, title: e.target.value})} className="w-full h-[44px] px-3 bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-[10px] text-[14px] text-text-primary focus:outline-none focus:border-accent-primary focus:shadow-[0_0_0_2px_rgba(124,58,237,0.15)] transition-all" />
-                    </div>
-                    <div>
-                      <label className="block text-[13px] font-[600] text-text-muted tracking-wider uppercase mb-1.5">Category</label>
-                      <select required value={eventFormData.category} onChange={e => setEventFormData({...eventFormData, category: e.target.value})} className="w-full h-[44px] px-3 bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-[10px] text-[14px] text-text-primary focus:outline-none focus:border-accent-primary focus:shadow-[0_0_0_2px_rgba(124,58,237,0.15)] transition-all [&>option]:bg-bg-base">
-                        {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-[13px] font-[600] text-text-muted tracking-wider uppercase mb-1.5">Cultural Origin</label>
-                      <input type="text" value={eventFormData.culturalOrigin} onChange={e => setEventFormData({...eventFormData, culturalOrigin: e.target.value})} className="w-full h-[44px] px-3 bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-[10px] text-[14px] text-text-primary focus:outline-none focus:border-accent-primary focus:shadow-[0_0_0_2px_rgba(124,58,237,0.15)] transition-all" />
-                    </div>
-                    <div>
-                      <label className="block text-[13px] font-[600] text-text-muted tracking-wider uppercase mb-1.5">Date</label>
-                      <input required type="date" value={eventFormData.date} onChange={e => setEventFormData({...eventFormData, date: e.target.value})} className="w-full h-[44px] px-3 bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-[10px] text-[14px] text-text-muted focus:text-text-primary focus:outline-none focus:border-accent-primary focus:shadow-[0_0_0_2px_rgba(124,58,237,0.15)] transition-all [color-scheme:dark]" />
-                    </div>
-                    <div>
-                      <label className="block text-[13px] font-[600] text-text-muted tracking-wider uppercase mb-1.5">City</label>
-                      <input required type="text" value={eventFormData.city} onChange={e => setEventFormData({...eventFormData, city: e.target.value})} className="w-full h-[44px] px-3 bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-[10px] text-[14px] text-text-primary focus:outline-none focus:border-accent-primary focus:shadow-[0_0_0_2px_rgba(124,58,237,0.15)] transition-all" />
-                    </div>
-                  </div>
-                </div>
 
-                <div>
-                  <h3 className="text-[16px] font-[700] text-text-primary mb-4 flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-[rgba(124,58,237,0.2)] text-accent-primary flex items-center justify-center text-[12px]">2</span> Descriptions
-                  </h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-[13px] font-[600] text-text-muted tracking-wider uppercase mb-1.5">Short Description</label>
-                      <textarea maxLength="200" rows="2" value={eventFormData.shortDescription} onChange={e => setEventFormData({...eventFormData, shortDescription: e.target.value})} className="w-full p-3 bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-[10px] text-[14px] text-text-primary focus:outline-none focus:border-accent-primary focus:shadow-[0_0_0_2px_rgba(124,58,237,0.15)] transition-all resize-none"></textarea>
-                    </div>
-                    <div>
-                      <label className="block text-[13px] font-[600] text-text-muted tracking-wider uppercase mb-1.5">Full Description</label>
-                      <textarea required rows="4" value={eventFormData.description} onChange={e => setEventFormData({...eventFormData, description: e.target.value})} className="w-full p-3 bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-[10px] text-[14px] text-text-primary focus:outline-none focus:border-accent-primary focus:shadow-[0_0_0_2px_rgba(124,58,237,0.15)] transition-all resize-none"></textarea>
-                    </div>
-                  </div>
-                </div>
+            <form onSubmit={handleEventSubmit} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 0 }}>
 
-                <div>
-                  <h3 className="text-[16px] font-[700] text-text-primary mb-4 flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-[rgba(124,58,237,0.2)] text-accent-primary flex items-center justify-center text-[12px]">3</span> Pricing & Capacity
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-5 bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-[16px]">
-                    <div className="md:col-span-2">
-                      <label className="flex items-center gap-3 cursor-pointer group">
-                        <div className="relative flex items-center">
-                          <input type="checkbox" checked={eventFormData.isFree} onChange={e => setEventFormData({...eventFormData, isFree: e.target.checked, price: e.target.checked ? 0 : eventFormData.price})} className="peer sr-only" />
-                          <div className="w-10 h-6 bg-[rgba(255,255,255,0.1)] rounded-full peer-checked:bg-accent-primary transition-colors"></div>
-                          <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4"></div>
-                        </div>
-                        <span className="text-[14px] font-[500] text-text-primary group-hover:text-white transition-colors">This is a free event</span>
-                      </label>
-                    </div>
-                    {!eventFormData.isFree && (
-                      <>
-                        <div>
-                          <label className="block text-[13px] font-[600] text-text-muted tracking-wider uppercase mb-1.5">Regular Price (₹)</label>
-                          <input type="number" min="0" value={eventFormData.price} onChange={e => setEventFormData({...eventFormData, price: e.target.value})} className="w-full h-[44px] px-3 bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-[10px] text-[14px] text-text-primary focus:outline-none focus:border-accent-primary focus:shadow-[0_0_0_2px_rgba(124,58,237,0.15)] transition-all" />
-                        </div>
-                        <div>
-                          <label className="block text-[13px] font-[600] text-text-muted tracking-wider uppercase mb-1.5">Total Capacity</label>
-                          <input required type="number" min="1" value={eventFormData.capacity} onChange={e => setEventFormData({...eventFormData, capacity: e.target.value})} className="w-full h-[44px] px-3 bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-[10px] text-[14px] text-text-primary focus:outline-none focus:border-accent-primary focus:shadow-[0_0_0_2px_rgba(124,58,237,0.15)] transition-all" />
-                        </div>
-                      </>
-                    )}
-                    {eventFormData.isFree && (
-                      <div className="md:col-span-2">
-                        <label className="block text-[13px] font-[600] text-text-muted tracking-wider uppercase mb-1.5">Total Capacity</label>
-                        <input required type="number" min="1" value={eventFormData.capacity} onChange={e => setEventFormData({...eventFormData, capacity: e.target.value})} className="w-full h-[44px] px-3 bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-[10px] text-[14px] text-text-primary focus:outline-none focus:border-accent-primary focus:shadow-[0_0_0_2px_rgba(124,58,237,0.15)] transition-all" />
-                      </div>
-                    )}
-                  </div>
+              {/* Section 1 */}
+              <div className="adm-form-section">
+                <div className="adm-form-section-header">
+                  <div className="adm-form-section-num">1</div>
+                  <div className="adm-form-section-title">Basic Details</div>
                 </div>
-
-                <div>
-                  <h3 className="text-[16px] font-[700] text-text-primary mb-4 flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-[rgba(124,58,237,0.2)] text-accent-primary flex items-center justify-center text-[12px]">4</span> Media
-                  </h3>
-                  <div className="border-2 border-dashed border-[rgba(255,255,255,0.1)] hover:border-accent-primary transition-colors rounded-[16px] p-8 text-center bg-[rgba(255,255,255,0.01)] group">
-                    <label className="cursor-pointer block">
-                      <div className="w-12 h-12 rounded-full bg-[rgba(255,255,255,0.04)] flex items-center justify-center mx-auto mb-4 group-hover:bg-[rgba(124,58,237,0.2)] group-hover:text-accent-primary transition-colors">
-                        <HiOutlinePlus className="w-6 h-6" />
-                      </div>
-                      <span className="block text-[15px] font-[600] text-text-primary mb-1">Click to upload images</span>
-                      <span className="block text-[13px] text-text-muted mb-4">Max 8 images (JPG, PNG)</span>
-                      <input type="file" multiple accept="image/*" onChange={e => setEventFormData({...eventFormData, images: e.target.files})} className="hidden" />
-                      <div className="inline-block px-6 py-2 bg-[rgba(255,255,255,0.06)] text-white rounded-full text-[13px] font-[600] hover:bg-[rgba(255,255,255,0.1)] transition-colors">Browse Files</div>
-                    </label>
-                    {eventFormData.images?.length > 0 && (
-                      <p className="mt-4 text-[13px] text-accent-cyan font-[600] bg-[rgba(6,182,212,0.1)] py-1.5 px-3 rounded-full inline-block">{eventFormData.images.length} files selected</p>
-                    )}
+                <div className="adm-form-grid">
+                  <div className="span2">
+                    <label className="adm-field-label">Title</label>
+                    <input required type="text" className="adm-input" value={eventFormData.title} onChange={e => setEventFormData({ ...eventFormData, title: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="adm-field-label">Category</label>
+                    <select className="adm-select" value={eventFormData.category} onChange={e => setEventFormData({ ...eventFormData, category: e.target.value })}>
+                      {CATEGORIES.map(c => <option key={c}>{c}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="adm-field-label">Cultural Origin</label>
+                    <input type="text" className="adm-input" value={eventFormData.culturalOrigin} onChange={e => setEventFormData({ ...eventFormData, culturalOrigin: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="adm-field-label">Date</label>
+                    <input required type="date" className="adm-input" value={eventFormData.date} onChange={e => setEventFormData({ ...eventFormData, date: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="adm-field-label">City</label>
+                    <input required type="text" className="adm-input" value={eventFormData.city} onChange={e => setEventFormData({ ...eventFormData, city: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="adm-field-label">Venue</label>
+                    <input required type="text" className="adm-input" value={eventFormData.venue} onChange={e => setEventFormData({ ...eventFormData, venue: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="adm-field-label">State</label>
+                    <input type="text" className="adm-input" value={eventFormData.state} onChange={e => setEventFormData({ ...eventFormData, state: e.target.value })} />
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-8 mt-8 border-t border-[rgba(255,255,255,0.06)] sticky bottom-0 bg-bg-base py-4 px-2 -mx-2">
-                <button type="button" onClick={() => setEventModalOpen(false)} className="h-[48px] px-6 border border-[rgba(255,255,255,0.12)] text-text-primary rounded-[12px] font-[600] hover:bg-[rgba(255,255,255,0.06)] transition-all active:scale-[0.98]">
-                  Cancel
-                </button>
-                <button type="submit" disabled={eventSaving} className="h-[48px] px-8 bg-accent-gradient text-white rounded-[12px] font-[600] text-[15px] hover:shadow-glow-primary transition-all active:scale-[0.98] disabled:opacity-60 flex items-center gap-2">
-                  {eventSaving && <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+              {/* Section 2 */}
+              <div className="adm-form-section">
+                <div className="adm-form-section-header">
+                  <div className="adm-form-section-num">2</div>
+                  <div className="adm-form-section-title">Descriptions</div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <div>
+                    <label className="adm-field-label">Short Description</label>
+                    <textarea maxLength="200" rows="2" className="adm-textarea" value={eventFormData.shortDescription} onChange={e => setEventFormData({ ...eventFormData, shortDescription: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="adm-field-label">Full Description</label>
+                    <textarea required rows="4" className="adm-textarea" value={eventFormData.description} onChange={e => setEventFormData({ ...eventFormData, description: e.target.value })} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 3 */}
+              <div className="adm-form-section">
+                <div className="adm-form-section-header">
+                  <div className="adm-form-section-num">3</div>
+                  <div className="adm-form-section-title">Pricing & Capacity</div>
+                </div>
+                <div className="adm-pricing-box">
+                  <div className="span2">
+                    <Toggle
+                      checked={eventFormData.isFree}
+                      onChange={v => setEventFormData({ ...eventFormData, isFree: v, price: v ? 0 : eventFormData.price })}
+                      label="This is a free event"
+                    />
+                  </div>
+                  {!eventFormData.isFree && (
+                    <div>
+                      <label className="adm-field-label">Regular Price (₹)</label>
+                      <input type="number" min="0" className="adm-input" value={eventFormData.price} onChange={e => setEventFormData({ ...eventFormData, price: e.target.value })} />
+                    </div>
+                  )}
+                  <div className={eventFormData.isFree ? 'span2' : ''}>
+                    <label className="adm-field-label">Capacity</label>
+                    <input required type="number" min="1" className="adm-input" value={eventFormData.capacity} onChange={e => setEventFormData({ ...eventFormData, capacity: e.target.value })} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 4 */}
+              <div className="adm-form-section">
+                <div className="adm-form-section-header">
+                  <div className="adm-form-section-num">4</div>
+                  <div className="adm-form-section-title">Media</div>
+                </div>
+                <div className="adm-upload-zone">
+                  <label>
+                    <div className="adm-upload-icon">
+                      <HiOutlinePlus />
+                    </div>
+                    <div className="adm-upload-main-text">Upload images</div>
+                    <div className="adm-upload-sub-text">Max 8 images — JPG or PNG</div>
+                    <input type="file" multiple accept="image/*" onChange={e => setEventFormData({ ...eventFormData, images: e.target.files })} style={{ display: 'none' }} />
+                    <span className="btn-ghost" style={{ display: 'inline-flex' }}>Browse files</span>
+                  </label>
+                  {eventFormData.images?.length > 0 && (
+                    <div className="adm-upload-chip">{eventFormData.images.length} files selected</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="adm-modal-footer">
+                <button type="button" className="btn-cancel" onClick={() => setEventModalOpen(false)}>Cancel</button>
+                <button type="submit" className="btn-submit" disabled={eventSaving}>
+                  {eventSaving && <div className="spin" />}
                   {currentEvent ? 'Save Changes' : 'Create Event'}
                 </button>
               </div>
@@ -866,7 +1824,7 @@ const AdminDashboard = () => {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 

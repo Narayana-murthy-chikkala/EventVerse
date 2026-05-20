@@ -915,12 +915,12 @@ const Home = () => {
           <div className="hero-inner">
             <div className="hero-kicker">
               <div className="hero-kicker-dot" />
-              <span className="hero-kicker-text">India's Premier Cultural Platform</span>
+              <span className="hero-kicker-text">The Premier Cultural Platform</span>
             </div>
 
             <h1 className="hero-title">
               <em>Experience</em> the<br />
-              <span className="hero-title-line2">Soul of India</span>
+              <span className="hero-title-line2">Soul of Culture</span>
             </h1>
 
             <p className="hero-sub">
@@ -986,7 +986,7 @@ const Home = () => {
                     Featured <em>Festivals</em>
                   </h2>
                   <p className="section-sub" style={{ marginTop: 12 }}>
-                    Handpicked experiences celebrating India's rich cultural tapestry.
+                    Handpicked experiences celebrating the world's rich cultural tapestry.
                   </p>
                 </div>
                 <Link to="/events" className="see-all-link">
@@ -1033,7 +1033,7 @@ const Home = () => {
                     num: '03',
                     icon: <HiOutlineStar />,
                     title: 'Immerse Yourself',
-                    desc: 'Arrive, scan your QR, and dive deep into the magic of India\'s living cultural heritage.',
+                    desc: 'Arrive, scan your QR, and dive deep into the magic of our living cultural heritage.',
                   },
                 ].map((step, i) => (
                   <div key={i} className="hiw-card">
@@ -1088,7 +1088,7 @@ const Home = () => {
               Ready for your next<br /><em>cultural adventure?</em>
             </h2>
             <p className="final-cta-sub">
-              Join thousands of Indians celebrating heritage through unforgettable live experiences.
+              Join thousands of people celebrating heritage through unforgettable live experiences.
             </p>
             <Link to="/register" className="final-cta-btn">
               Join Free Today

@@ -82,7 +82,7 @@ const ForgotPassword = () => {
       }} />
 
       {/* Logo */}
-      <Link to="/" style={{
+      <Link to="/home" style={{
         display: 'flex', alignItems: 'center', gap: '10px',
         marginBottom: '36px', textDecoration: 'none',
         transition: 'transform 0.3s ease',

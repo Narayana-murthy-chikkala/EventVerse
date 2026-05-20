@@ -171,7 +171,7 @@ const Events = () => {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-light)', paddingTop: '70px' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-light)', paddingTop: '96px' }}>
       {/* Header */}
       <div style={{
         background: 'var(--bg-lighter)',
@@ -226,7 +226,7 @@ const Events = () => {
               background: 'var(--bg-lighter)', border: '1.5px solid var(--border-light)',
               borderRadius: '12px', fontSize: '14px', color: 'var(--text-dark)', outline: 'none',
               transition: 'all 0.2s ease', boxSizing: 'border-box',
-              fontFamily: "'Poppins', sans-serif',",
+              fontFamily: "'Poppins', sans-serif",
               boxShadow: '0 2px 8px rgba(26,21,16,0.04)',
             }}
             onFocus={e => { e.target.style.borderColor = 'var(--primary-terra)'; e.target.style.boxShadow = '0 0 0 3px rgba(212,82,42,0.08)'; }}

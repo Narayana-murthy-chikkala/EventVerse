@@ -19,9 +19,25 @@ const Gallery = () => {
         const res = await getAllEvents({ limit: 100 });
         const events = res.data.data.events || [];
         const allImages = [];
+        const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000') + '/api/v1';
         events.forEach(event => {
-          const eventImages = event.images?.length > 0 ? event.images : event.thumbnail ? [event.thumbnail] : [];
-          eventImages.forEach(url => allImages.push({ url, eventTitle: event.title, eventId: event._id, category: event.category }));
+          if (event.images && event.images.length > 0) {
+            event.images.forEach((_, index) => {
+              allImages.push({
+                url: `${API_BASE}/events/${event._id}/images/${index}`,
+                eventTitle: event.title,
+                eventId: event._id,
+                category: event.category
+              });
+            });
+          } else if (event.thumbnail && event.thumbnail.filename) {
+            allImages.push({
+              url: `${API_BASE}/events/${event._id}/thumbnail`,
+              eventTitle: event.title,
+              eventId: event._id,
+              category: event.category
+            });
+          }
         });
         setImages(allImages);
         setFiltered(allImages);
@@ -89,7 +105,7 @@ const Gallery = () => {
           margin: '0 auto', lineHeight: '1.7',
           fontFamily: "'Poppins', sans-serif",
         }}>
-          A visual journey through India's vibrant cultural celebrations. Discover the colors, emotions, and energy of our festivals.
+          A visual journey through vibrant global cultural celebrations. Discover the colors, emotions, and energy of our festivals.
         </p>
       </div>
 
@@ -119,7 +135,7 @@ const Gallery = () => {
         </div>
 
         {loading ? (
-          <div style={{ columns: '1 300px', columnGap: '20px' }}>
+          <div className="masonry-grid">
             {Array.from({ length: 12 }).map((_, i) => (
               <div key={i} style={{
                 background: 'var(--border-lighter)', borderRadius: '14px',
@@ -151,7 +167,7 @@ const Gallery = () => {
             </p>
           </div>
         ) : (
-          <div style={{ columns: '1 260px', columnGap: '20px' }}>
+          <div className="masonry-grid">
             {filtered.map((img, i) => (
               <div
                 key={i}
@@ -321,6 +337,17 @@ const Gallery = () => {
         @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         .gallery-card:hover .gallery-overlay { opacity: 1 !important; }
+        
+        .masonry-grid {
+          column-count: 3;
+          column-gap: 20px;
+        }
+        @media (max-width: 1024px) {
+          .masonry-grid { column-count: 2; }
+        }
+        @media (max-width: 640px) {
+          .masonry-grid { column-count: 1; }
+        }
       `}</style>
     </div>
   );
