@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const css = `
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,800;0,900;1,800;1,900&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;0,700;1,300;1,600;1,700&family=Cormorant:ital,wght@0,700;1,700&family=Poppins:wght@300;400;500;600;700;900&display=swap');
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { background: #FAFAF8; overflow: hidden; }
@@ -120,53 +120,116 @@ const css = `
   }
   .wv-dots.show { opacity: 1; }
 
-  /* ── The text ── */
+  /* ══════════════════════════════════════════════════
+     THE WORD  — complete typographic rework
+  ══════════════════════════════════════════════════ */
+
   .wv-word {
     position: relative;
     z-index: 10;
     display: flex;
     align-items: baseline;
+    gap: 0;
     cursor: default;
     user-select: none;
+    /* optical vertical nudge so baseline sits on the ring centre */
+    transform: translateY(4px);
   }
 
-  /* Each letter is wrapped in a span for stagger */
-  .wv-letter {
-    display: inline-block;
-    font-family: 'DM Sans', sans-serif;
-    font-size: clamp(48px, 10.5vw, 124px);
-    line-height: 1;
-    letter-spacing: -0.02em;
-    opacity: 0;
-    transform: translateY(60px) rotateX(40deg);
-    transform-origin: bottom center;
-    animation: letter-in 0.7s cubic-bezier(0.16,1,0.3,1) forwards;
-    -webkit-font-smoothing: antialiased;
-    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  /* ── "EVENT" — Cormorant Garamond, ultra-light, wide tracking ── */
+  .wv-a {
+    display: flex;
+    align-items: baseline;
+    position: relative;
   }
 
-  /* "EVENT" letters — dark */
   .wv-a .wv-letter {
-    font-weight: 900;
+    display: inline-block;
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-style: normal;
+    font-size: clamp(52px, 11.5vw, 136px);
+    line-height: 0.95;
+    letter-spacing: 0.18em;
     color: #1A1510;
+    opacity: 0;
+    transform: translateY(48px);
+    animation: letter-rise 0.9s cubic-bezier(0.16,1,0.3,1) forwards;
+    -webkit-font-smoothing: antialiased;
+    transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
   }
 
-  /* "VERSE" letters — terracotta italic gradient */
+  /* Last letter of EVENT — no extra tracking gap before VERSE */
+  .wv-a .wv-letter:last-child {
+    letter-spacing: 0.04em;
+  }
+
+  .wv-a .wv-letter:hover {
+    transform: translateY(-10px) scale(1.05) !important;
+    color: #D4522A;
+  }
+
+  /* ── Thin vertical divider between EVENT and VERSE ── */
+  .wv-divider {
+    display: inline-block;
+    width: 1px;
+    height: clamp(36px, 7.5vw, 88px);
+    background: linear-gradient(to bottom, transparent, rgba(212,82,42,0.35), transparent);
+    margin: 0 clamp(10px, 1.8vw, 22px);
+    align-self: center;
+    opacity: 0;
+    animation: divider-in 0.6s 0.85s ease forwards;
+    flex-shrink: 0;
+  }
+
+  @keyframes divider-in {
+    to { opacity: 1; }
+  }
+
+  /* ── "VERSE" — Cormorant italic, heavier, gradient shimmer ── */
+  .wv-b {
+    display: flex;
+    align-items: baseline;
+    position: relative;
+  }
+
   .wv-b .wv-letter {
-    font-weight: 800;
+    display: inline-block;
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 700;
     font-style: italic;
-    background: linear-gradient(130deg, #D4522A 0%, #E8835E 38%, #C9A84C 62%, #D4522A 100%);
-    background-size: 280% 100%;
+    font-size: clamp(52px, 11.5vw, 136px);
+    line-height: 0.95;
+    letter-spacing: 0.06em;
+    background: linear-gradient(
+      125deg,
+      #A33E1C 0%,
+      #D4522A 22%,
+      #E8835E 40%,
+      #C9A84C 58%,
+      #E8C56A 72%,
+      #D4522A 88%,
+      #A33E1C 100%
+    );
+    background-size: 320% 100%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    opacity: 0;
+    transform: translateY(48px);
     animation:
-      letter-in 0.7s cubic-bezier(0.16,1,0.3,1) forwards,
-      gold-shimmer 5s 2.4s ease-in-out infinite;
+      letter-rise 0.9s cubic-bezier(0.16,1,0.3,1) forwards,
+      gold-shimmer 6s 2.6s ease-in-out infinite;
+    -webkit-font-smoothing: antialiased;
+    transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
   }
 
-  @keyframes letter-in {
-    to { opacity: 1; transform: translateY(0) rotateX(0deg); }
+  .wv-b .wv-letter:hover {
+    transform: translateY(-10px) scale(1.05) !important;
+  }
+
+  @keyframes letter-rise {
+    to { opacity: 1; transform: translateY(0); }
   }
 
   @keyframes gold-shimmer {
@@ -174,61 +237,87 @@ const css = `
     50%      { background-position: 100% 50%; }
   }
 
-  /* Hover: individual letter bounce */
-  .wv-letter:hover {
-    transform: translateY(-10px) scale(1.08) !important;
+  /* ── Subtitle tag line ── */
+  .wv-tagline {
+    position: absolute;
+    bottom: -clamp(28px, 4.5vw, 46px);
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 300;
+    font-size: clamp(10px, 1.4vw, 13px);
+    letter-spacing: 0.38em;
+    text-transform: uppercase;
+    color: rgba(90,72,60,0.45);
+    opacity: 0;
+    animation: tagline-in 1s 1.6s ease forwards;
+    white-space: nowrap;
+    overflow: hidden;
   }
 
-  /* ── Underline that draws in ── */
-  .wv-underline {
+  /* animate the text-reveal via clip-path */
+  @keyframes tagline-in {
+    from { opacity: 0; letter-spacing: 0.55em; }
+    to   { opacity: 1; letter-spacing: 0.38em; }
+  }
+
+  /* ── Refined underline: two-line rule beneath VERSE ── */
+  .wv-underline-wrap {
     position: absolute;
-    bottom: -8px;
-    left: 0; right: 0;
-    height: 2.5px;
-    background: linear-gradient(90deg, #D4522A, #C9A84C, #D4522A);
-    background-size: 200% 100%;
+    bottom: -10px;
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3.5px;
+    overflow: hidden;
+  }
+
+  .wv-underline {
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, #D4522A 30%, #C9A84C 60%, transparent 100%);
     transform: scaleX(0);
     transform-origin: left;
-    border-radius: 2px;
-    animation:
-      underline-draw 0.8s 1.5s cubic-bezier(0.16,1,0.3,1) forwards,
-      underline-shift 4s 2.8s ease-in-out infinite;
+    border-radius: 1px;
+  }
+
+  .wv-underline:nth-child(1) {
+    animation: underline-draw 0.7s 1.4s cubic-bezier(0.16,1,0.3,1) forwards;
+  }
+  .wv-underline:nth-child(2) {
+    height: 0.5px;
+    opacity: 0.45;
+    animation: underline-draw 0.7s 1.55s cubic-bezier(0.16,1,0.3,1) forwards;
   }
 
   @keyframes underline-draw {
     to { transform: scaleX(1); }
   }
 
-  @keyframes underline-shift {
-    0%,100% { background-position: 0% 50%; }
-    50%      { background-position: 100% 50%; }
-  }
-
-  /* ── Morphing background text (huge watermark) ── */
+  /* ── Morphing background watermark ── */
   .wv-watermark {
     position: absolute;
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
     z-index: 0;
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 900;
-    font-size: clamp(120px, 28vw, 340px);
-    letter-spacing: -0.03em;
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 700;
+    font-style: italic;
+    font-size: clamp(130px, 30vw, 360px);
+    letter-spacing: -0.01em;
     white-space: nowrap;
     color: transparent;
-    -webkit-text-stroke: 1px rgba(212,82,42,0.055);
+    -webkit-text-stroke: 1px rgba(212,82,42,0.045);
     pointer-events: none;
     opacity: 0;
-    animation: wm-fade 1.2s 0.8s ease forwards, wm-float 9s 2s ease-in-out infinite alternate;
+    animation: wm-fade 1.4s 0.6s ease forwards, wm-float 11s 2s ease-in-out infinite alternate;
     user-select: none;
   }
 
-  @keyframes wm-fade {
-    to { opacity: 1; }
-  }
-
+  @keyframes wm-fade  { to { opacity: 1; } }
   @keyframes wm-float {
-    from { transform: translate(-50%,-50%) scale(1); }
+    from { transform: translate(-50%,-50%) scale(1);    }
     to   { transform: translate(-50%,-50%) scale(1.04); }
   }
 
@@ -381,7 +470,7 @@ const useCanvas = (canvasRef) => {
 
 /* ── Dot positions on ring (12 evenly spaced) ── */
 const RingDots = () => {
-  const r = 336; // half of 672px (ring-1 width)
+  const r = 336;
   const dots = Array.from({ length: 12 }, (_, i) => {
     const angle = (i / 12) * Math.PI * 2;
     const cx = 340 + Math.cos(angle) * r;
@@ -412,7 +501,6 @@ const Welcome = () => {
   useCanvas(canvasRef);
 
   useEffect(() => {
-    /* Rings expand in after text lands */
     const t1 = setTimeout(() => {
       ring1Ref.current?.classList.add('show');
       ring2Ref.current?.classList.add('show');
@@ -421,7 +509,6 @@ const Welcome = () => {
       dotsRef.current?.classList.add('show');
     }, 1000);
 
-    /* Progress */
     const dur = 6000, tick = 30;
     let prog = 0;
     const timer = setInterval(() => {
@@ -450,7 +537,7 @@ const Welcome = () => {
         <div className="wv-glow wv-glow-b" />
         <div className="wv-glow wv-glow-c" />
 
-        {/* Watermark */}
+        {/* Watermark — now italic serif for elegance */}
         <div className="wv-watermark" aria-hidden="true">EV</div>
 
         {/* Rings */}
@@ -483,30 +570,48 @@ const Welcome = () => {
           <RingDots />
         </div>
 
-        {/* THE WORD */}
-        <div className="wv-word">
-          {/* EVENT */}
-          <div className="wv-a" style={{ display:'flex', position:'relative' }}>
-            {EVENT_LETTERS.map((l, i) => (
-              <span
-                key={i}
-                className="wv-letter"
-                style={{ animationDelay: `${0.05 + i * 0.07}s` }}
-              >{l}</span>
-            ))}
+        {/* THE WORD — new typographic layout */}
+        <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+
+          <div className="wv-word">
+
+            {/* EVENT — light-weight wide-tracked serif */}
+            <div className="wv-a">
+              {EVENT_LETTERS.map((l, i) => (
+                <span
+                  key={i}
+                  className="wv-letter"
+                  style={{ animationDelay: `${0.05 + i * 0.08}s` }}
+                >{l}</span>
+              ))}
+            </div>
+
+            {/* Vertical divider */}
+            <div className="wv-divider" />
+
+            {/* VERSE — bold italic serif with shimmer gradient */}
+            <div className="wv-b">
+              {VERSE_LETTERS.map((l, i) => (
+                <span
+                  key={i}
+                  className="wv-letter"
+                  style={{ animationDelay: `${0.48 + i * 0.08}s` }}
+                >{l}</span>
+              ))}
+              {/* Double underline rule */}
+              <div className="wv-underline-wrap">
+                <div className="wv-underline" />
+                <div className="wv-underline" />
+              </div>
+            </div>
+
           </div>
 
-          {/* VERSE */}
-          <div className="wv-b" style={{ display:'flex', position:'relative' }}>
-            {VERSE_LETTERS.map((l, i) => (
-              <span
-                key={i}
-                className="wv-letter"
-                style={{ animationDelay: `${0.4 + i * 0.07}s` }}
-              >{l}</span>
-            ))}
-            <div className="wv-underline" />
+          {/* Tagline */}
+          <div className="wv-tagline">
+            Celebrate Culture &nbsp;·&nbsp; Book Experiences
           </div>
+
         </div>
 
         {/* Progress */}
