@@ -59,7 +59,7 @@ const Register = () => {
   };
 
   const handleGoogleRegister = () => {
-    window.location.href = 'http://localhost:5000/api/auth/google';
+    window.location.href = 'https://eventverse-backend-8ue1.onrender.com/api/auth/google';
   };
 
   const inputStyle = (hasError) => ({
@@ -279,7 +279,7 @@ const Register = () => {
           type="button"
           onClick={() => {
             window.open(
-              "http://localhost:5000/api/auth/google",
+              "https://eventverse-backend-8ue1.onrender.com/api/auth/google",
               "_self"
             );
           }}

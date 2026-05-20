@@ -40,7 +40,7 @@ const Login = () => {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = 'http://localhost:5000/api/auth/google';
+    window.location.href = 'https://eventverse-backend-8ue1.onrender.com/api/auth/google';
   };
 
   return (
@@ -267,7 +267,7 @@ const Login = () => {
           onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-light)'; e.currentTarget.style.boxShadow = 'none'; }}
           onClick={() => {
             window.open(
-              "http://localhost:5000/api/auth/google",
+              "https://eventverse-backend-8ue1.onrender.com/api/auth/google",
               "_self"
             );
           }}
