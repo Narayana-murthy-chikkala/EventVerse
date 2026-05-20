@@ -42,8 +42,119 @@ const css = `
   .details-hero-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(to top, var(--bg-light) 0%, rgba(250, 250, 248, 0.4) 60%, transparent 100%);
+    background: linear-gradient(to top, var(--bg-light) 0%, transparent 12%);
+    pointer-events: none;
+    z-index: 10;
   }
+
+  /* ── Hero Image Crossfade ─────────────────────────────────── */
+  .hero-img-wrapper {
+    position: absolute;
+    inset: 0;
+  }
+
+  .hero-img-slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.65s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.65s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: scale(1.04);
+  }
+
+  .hero-img-slide.active {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .hero-img-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    display: block;
+  }
+
+  /* ── Thumbnail Strip ─────────────────────────────────────── */
+  .hero-thumbnails {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 20;
+    padding: 6px;
+    border-radius: 14px;
+    background: rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(10px);
+  }
+
+  .hero-thumb {
+    width: 52px;
+    height: 36px;
+    border-radius: 7px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.25s ease, transform 0.2s ease, opacity 0.2s ease;
+    opacity: 0.55;
+    flex-shrink: 0;
+    background: none;
+    padding: 0;
+  }
+
+  .hero-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    display: block;
+  }
+
+  .hero-thumb.active-thumb {
+    border-color: rgba(255, 255, 255, 0.9);
+    opacity: 1;
+    transform: scale(1.1);
+  }
+
+  .hero-thumb:hover:not(.active-thumb) {
+    opacity: 0.85;
+    transform: scale(1.06);
+  }
+
+  /* ── Nav Buttons ─────────────────────────────────────────── */
+  .hero-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(255, 255, 255, 0.28);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 20;
+    transition: background 0.22s ease, transform 0.22s ease, border-color 0.22s ease;
+  }
+
+  .hero-nav-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: translateY(-50%) scale(1.1);
+  }
+
+  .hero-nav-btn:active {
+    transform: translateY(-50%) scale(0.93);
+  }
+
+  .hero-nav-left  { left: 16px; }
+  .hero-nav-right { right: 16px; }
 
   /* ── Badges ─────────────────────────────────────────────── */
   .badges-row {
@@ -815,48 +926,58 @@ const EventDetails = () => {
 
       {/* Hero */}
       {allImages.length > 0 && (
-        <div className="details-hero relative w-full overflow-hidden">
-          <img
-            src={allImages[activeImage]}
-            alt={event.title}
-            className="w-full h-full object-cover animate-fade-in"
-            key={activeImage}
-          />
+        <div className="details-hero">
+          {/* Crossfade image stack */}
+          <div className="hero-img-wrapper">
+            {allImages.map((src, i) => (
+              <div
+                key={i}
+                className={`hero-img-slide${i === activeImage ? ' active' : ''}`}
+              >
+                <img src={src} alt={`${event.title} photo ${i + 1}`} />
+              </div>
+            ))}
+          </div>
+
+          {/* Nav + thumbnails — only when multiple images */}
           {allImages.length > 1 && (
             <>
               <button
-                onClick={() => setActiveImage(prev => prev === 0 ? allImages.length - 1 : prev - 1)}
-                className="absolute left-4 top-1/2 -translate-y-1/2 w-[48px] h-[48px] rounded-full bg-[rgba(255,255,255,0.7)] backdrop-blur-md border border-[rgba(0,0,0,0.1)] flex items-center justify-center text-text-dark hover:bg-[rgba(255,255,255,0.9)] transition-all duration-200 active:scale-[0.95] z-20"
+                className="hero-nav-btn hero-nav-left"
+                onClick={() => setActiveImage(prev => (prev === 0 ? allImages.length - 1 : prev - 1))}
+                aria-label="Previous image"
               >
-                <HiChevronLeft className="w-6 h-6" />
+                <HiChevronLeft className="w-5 h-5" />
               </button>
               <button
-                onClick={() => setActiveImage(prev => prev === allImages.length - 1 ? 0 : prev + 1)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 w-[48px] h-[48px] rounded-full bg-[rgba(255,255,255,0.7)] backdrop-blur-md border border-[rgba(0,0,0,0.1)] flex items-center justify-center text-text-dark hover:bg-[rgba(255,255,255,0.9)] transition-all duration-200 active:scale-[0.95] z-20"
+                className="hero-nav-btn hero-nav-right"
+                onClick={() => setActiveImage(prev => (prev === allImages.length - 1 ? 0 : prev + 1))}
+                aria-label="Next image"
               >
-                <HiChevronRight className="w-6 h-6" />
+                <HiChevronRight className="w-5 h-5" />
               </button>
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-                {allImages.map((_, i) => (
+
+              <div className="hero-thumbnails">
+                {allImages.map((src, i) => (
                   <button
                     key={i}
+                    className={`hero-thumb${i === activeImage ? ' active-thumb' : ''}`}
                     onClick={() => setActiveImage(i)}
-                    className={`h-2.5 rounded-full transition-all duration-300`}
-                    style={{
-                      width: i === activeImage ? '28px' : '10px',
-                      backgroundColor: i === activeImage ? 'var(--primary-terra)' : 'rgba(139,125,111,0.4)',
-                    }}
-                  />
+                    aria-label={`View image ${i + 1}`}
+                  >
+                    <img src={src} alt="" />
+                  </button>
                 ))}
               </div>
             </>
           )}
+
           <div className="details-hero-overlay" />
         </div>
       )}
 
       {/* Content */}
-      <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 ${allImages.length > 0 ? '-mt-24' : 'pt-6 md:pt-10'}`}>
+      <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 ${allImages.length > 0 ? '-mt-4' : 'pt-6 md:pt-10'}`}>
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
 
           {/* ── Left Column ─────────────────────────────────────── */}

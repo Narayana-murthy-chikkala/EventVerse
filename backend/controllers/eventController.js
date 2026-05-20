@@ -12,6 +12,10 @@ const getAllEvents = async (req, res, next) => {
       filter.category = req.query.category;
     }
 
+    if (req.query.organizer) {
+      filter.organizer = req.query.organizer;
+    }
+
     if (req.query.city) {
       filter.city = { $regex: req.query.city, $options: 'i' };
     }
@@ -165,6 +169,11 @@ const updateEvent = async (req, res, next) => {
       throw new Error('Event not found');
     }
 
+    if (event.organizer.toString() !== req.user._id.toString()) {
+      res.statusCode = 403;
+      throw new Error('Access denied: You can only edit your own events');
+    }
+
     if (req.files && req.files.length > 0) {
       const newImageObjects = [];
       for (const file of req.files) {
@@ -219,12 +228,18 @@ const deleteEvent = async (req, res, next) => {
       throw new Error('Event not found');
     }
 
-    event.status = 'cancelled';
-    await event.save();
+    if (event.organizer.toString() !== req.user._id.toString()) {
+      res.statusCode = 403;
+      throw new Error('Access denied: You can only delete your own events');
+    }
+
+    const Registration = require('../models/Registration');
+    await Registration.deleteMany({ event: event._id });
+    await Event.findByIdAndDelete(req.params.id);
 
     res.status(200).json({
       success: true,
-      message: 'Event cancelled successfully',
+      message: 'Event deleted successfully',
       data: {},
     });
   } catch (error) {

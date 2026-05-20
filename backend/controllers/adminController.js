@@ -196,6 +196,30 @@ const getAllRegistrations = async (req, res, next) => {
     const skip = (page - 1) * limit;
 
     const filter = {};
+
+    if (req.query.search) {
+      const searchRegex = { $regex: req.query.search, $options: 'i' };
+      
+      const matchingUsers = await User.find({
+        $or: [{ name: searchRegex }, { email: searchRegex }]
+      }).select('_id');
+      
+      const matchingEvents = await Event.find({ title: searchRegex }).select('_id');
+      
+      const orConditions = [
+        { user: { $in: matchingUsers.map(u => u._id) } },
+        { event: { $in: matchingEvents.map(e => e._id) } }
+      ];
+
+      if (req.query.search.match(/^[0-9a-fA-F]{24}$/)) {
+        orConditions.push({ _id: req.query.search });
+        orConditions.push({ event: req.query.search });
+        orConditions.push({ user: req.query.search });
+      }
+      
+      filter.$or = orConditions;
+    }
+
     if (req.query.eventId) {
       filter.event = req.query.eventId;
     }
@@ -236,6 +260,11 @@ const toggleFeaturedEvent = async (req, res, next) => {
     if (!event) {
       res.statusCode = 404;
       throw new Error('Event not found');
+    }
+
+    if (event.organizer.toString() !== req.user._id.toString()) {
+      res.statusCode = 403;
+      throw new Error('Access denied: You can only feature your own events');
     }
 
     event.isFeatured = !event.isFeatured;

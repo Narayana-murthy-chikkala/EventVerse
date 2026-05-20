@@ -3,7 +3,6 @@ const cors = require('cors');
 const morgan = require('morgan');
 const dotenv = require('dotenv');
 const passport = require('passport');
-const session = require('express-session');
 
 const connectDB = require('./config/db');
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
@@ -52,18 +51,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
 
-// Session Middleware
-app.use(
-  session({
-    secret: 'googleauthsecret',
-    resave: false,
-    saveUninitialized: false,
-  })
-);
-
 // Passport Middleware
 app.use(passport.initialize());
-app.use(passport.session());
 
 // Test Route
 app.get('/', (req, res) => {

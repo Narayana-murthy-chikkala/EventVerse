@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { HiOutlineMenu, HiOutlineX } from 'react-icons/hi';
 import { HiChevronDown } from 'react-icons/hi2';
 
 const css = `
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Poppins:wght@300;400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap');
 
+  /* ════════════════════════════════════════════════════════ */
+  /* LIGHT THEME (Default for non-admin pages) */
+  /* ════════════════════════════════════════════════════════ */
+  
   .navbar {
     --primary-terra: #D4522A;
     --primary-light: #E8835E;
@@ -21,6 +25,24 @@ const css = `
     --border-lighter: #F0E8E0;
   }
 
+  /* ════════════════════════════════════════════════════════ */
+  /* DARK THEME (For admin pages) */
+  /* ════════════════════════════════════════════════════════ */
+  
+  .navbar.admin-theme {
+    --primary-terra: #6366F1;
+    --primary-light: #818CF8;
+    --primary-dark: #4F46E5;
+    --white: #FFFFFF;
+    --bg-light: #1E293B;
+    --bg-lighter: #0F172A;
+    --text-dark: #F8FAFC;
+    --text-gray: #CBD5E1;
+    --text-light: #94A3B8;
+    --border-light: rgba(255, 255, 255, 0.08);
+    --border-lighter: rgba(255, 255, 255, 0.12);
+  }
+
   .navbar-root {
     position: fixed;
     top: 0;
@@ -30,8 +52,8 @@ const css = `
     transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
-  /* Glassy effect - scrolled state */
-  .navbar-root.scrolled {
+  /* ──── LIGHT THEME: Glassy effect - scrolled state ──── */
+  .navbar:not(.admin-theme) .navbar-root.scrolled {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.72) 0%, rgba(248, 248, 246, 0.55) 100%);
     backdrop-filter: blur(35px) saturate(180%) brightness(1.05);
     -webkit-backdrop-filter: blur(35px) saturate(180%) brightness(1.05);
@@ -40,12 +62,30 @@ const css = `
                 inset 0 1px 1px rgba(255, 255, 255, 0.6);
   }
 
-  /* Glassy effect - non-scrolled state */
-  .navbar-root:not(.scrolled) {
+  /* ──── LIGHT THEME: Glassy effect - non-scrolled state ──── */
+  .navbar:not(.admin-theme) .navbar-root:not(.scrolled) {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(250, 250, 248, 0.25) 100%);
     backdrop-filter: blur(25px) saturate(160%);
     -webkit-backdrop-filter: blur(25px) saturate(160%);
     border-bottom: 1px solid rgba(240, 232, 224, 0.15);
+  }
+
+  /* ──── DARK THEME: Glassy effect - scrolled state ──── */
+  .navbar.admin-theme .navbar-root.scrolled {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 41, 59, 0.75) 100%);
+    backdrop-filter: blur(35px) saturate(180%) brightness(1.05);
+    -webkit-backdrop-filter: blur(35px) saturate(180%) brightness(1.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 12px 56px rgba(0, 0, 0, 0.3), 
+                inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  }
+
+  /* ──── DARK THEME: Glassy effect - non-scrolled state ──── */
+  .navbar.admin-theme .navbar-root:not(.scrolled) {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.7) 0%, rgba(30, 41, 59, 0.5) 100%);
+    backdrop-filter: blur(25px) saturate(160%);
+    -webkit-backdrop-filter: blur(25px) saturate(160%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   /* Scroll direction animations */
@@ -88,7 +128,7 @@ const css = `
   }
 
   .navbar-logo-text {
-    font-family: 'Playfair Display', serif;
+    font-family: 'DM Sans', sans-serif;
     font-size: 22px;
     font-weight: 800;
     letter-spacing: -0.01em;
@@ -114,7 +154,7 @@ const css = `
 
   .navbar-nav-link {
     position: relative;
-    font-family: 'Poppins', sans-serif;
+    font-family: 'DM Sans', sans-serif;
     font-size: 14px;
     font-weight: 500;
     color: var(--text-gray);
@@ -170,7 +210,7 @@ const css = `
     padding: 11px 20px;
     background: rgba(255, 255, 255, 0.3);
     color: var(--text-gray);
-    font-family: 'Poppins', sans-serif;
+    font-family: 'DM Sans', sans-serif;
     font-size: 14px;
     font-weight: 600;
     text-decoration: none;
@@ -182,12 +222,23 @@ const css = `
     backdrop-filter: blur(10px);
   }
 
+  .navbar.admin-theme .btn-ghost {
+    background: rgba(99, 102, 241, 0.1);
+    border: 1.5px solid rgba(99, 102, 241, 0.3);
+  }
+
   .btn-ghost:hover {
     background: rgba(255, 255, 255, 0.5);
     border-color: var(--primary-terra);
     color: var(--text-dark);
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(212, 82, 42, 0.12);
+  }
+
+  .navbar.admin-theme .btn-ghost:hover {
+    background: rgba(99, 102, 241, 0.2);
+    border-color: var(--primary-terra);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.2);
   }
 
   .btn-ghost:active {
@@ -202,7 +253,7 @@ const css = `
     padding: 12px 28px;
     background: linear-gradient(135deg, var(--primary-terra) 0%, var(--primary-light) 100%);
     color: white;
-    font-family: 'Poppins', sans-serif;
+    font-family: 'DM Sans', sans-serif;
     font-size: 14px;
     font-weight: 600;
     text-decoration: none;
@@ -215,9 +266,17 @@ const css = `
     backdrop-filter: blur(10px);
   }
 
+  .navbar.admin-theme .btn-primary {
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+  }
+
   .btn-primary:hover {
     transform: translateY(-3px);
     box-shadow: 0 14px 36px rgba(212, 82, 42, 0.32);
+  }
+
+  .navbar.admin-theme .btn-primary:hover {
+    box-shadow: 0 14px 36px rgba(99, 102, 241, 0.4);
   }
 
   .btn-primary:active {
@@ -240,6 +299,11 @@ const css = `
     backdrop-filter: blur(10px);
   }
 
+  .navbar.admin-theme .navbar-mobile-toggle {
+    background: rgba(99, 102, 241, 0.1);
+    border-color: rgba(99, 102, 241, 0.3);
+  }
+
   @media (min-width: 768px) {
     .navbar-mobile-toggle {
       display: none;
@@ -249,6 +313,11 @@ const css = `
   .navbar-mobile-toggle:hover {
     background: rgba(255, 255, 255, 0.4);
     color: var(--text-dark);
+    border-color: var(--primary-terra);
+  }
+
+  .navbar.admin-theme .navbar-mobile-toggle:hover {
+    background: rgba(99, 102, 241, 0.2);
     border-color: var(--primary-terra);
   }
 
@@ -270,45 +339,60 @@ const css = `
     transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
+  .navbar.admin-theme .navbar-mobile-menu {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.85) 100%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
+  }
+
   .navbar-mobile-menu.open {
-    transform: scaleY(1) translateZ(0);
-    opacity: 1;
-    pointer-events: auto;
+    max-height: 500px;
   }
 
   .navbar-mobile-menu:not(.open) {
-    transform: scaleY(0.95) translateZ(0);
-    opacity: 0;
-    pointer-events: none;
+    max-height: 0;
+    overflow: hidden;
   }
 
   .navbar-mobile-content {
     padding: 16px 24px;
-    space-y: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
   }
 
   .navbar-mobile-link {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     padding: 12px 16px;
     color: var(--text-gray);
     text-decoration: none;
-    font-family: 'Poppins', sans-serif;
-    font-size: 15px;
-    font-weight: 500;
-    border-radius: 8px;
+    border-radius: 6px;
     transition: all 0.3s;
-    margin-bottom: 8px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
   }
 
-  .navbar-mobile-link:hover,
-  .navbar-mobile-link.active {
+  .navbar-mobile-link:hover {
     background: rgba(212, 82, 42, 0.08);
     color: var(--text-dark);
     padding-left: 20px;
   }
 
+  .navbar.admin-theme .navbar-mobile-link:hover {
+    background: rgba(99, 102, 241, 0.1);
+  }
+
+  .navbar-mobile-link.active {
+    color: var(--text-dark);
+    font-weight: 600;
+  }
+
+  /* User Menu */
   .navbar-user-menu {
     position: relative;
   }
@@ -316,123 +400,94 @@ const css = `
   .navbar-user-button {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 6px;
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(229, 221, 213, 0.3);
-    border-radius: 50%;
+    gap: 8px;
+    padding: 0;
+    background: transparent;
+    border: none;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    backdrop-filter: blur(10px);
-  }
-
-  .navbar-user-button:hover {
-    background: rgba(255, 255, 255, 0.4);
-    border-color: var(--primary-terra);
-    box-shadow: 0 6px 20px rgba(212, 82, 42, 0.12);
+    transition: all 0.3s;
   }
 
   .navbar-user-avatar {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid rgba(229, 221, 213, 0.4);
   }
 
   .navbar-user-avatar-fallback {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     background: linear-gradient(135deg, var(--primary-terra) 0%, var(--primary-light) 100%);
     color: white;
+    font-size: 12px;
     font-weight: 700;
-    font-size: 13px;
-    border: 2px solid rgba(229, 221, 213, 0.4);
-    box-shadow: 0 4px 12px rgba(212, 82, 42, 0.15);
   }
 
   .navbar-chevron {
-    width: 16px;
-    height: 16px;
-    color: var(--text-light);
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: transform 0.3s;
   }
 
   .navbar-chevron.open {
     transform: rotate(180deg);
-    color: var(--text-dark);
   }
 
   .navbar-dropdown {
     position: absolute;
-    top: calc(100% + 8px);
+    top: 100%;
     right: 0;
-    width: 280px;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(248, 248, 246, 0.65) 100%);
-    border: 1.5px solid rgba(229, 221, 213, 0.35);
+    min-width: 200px;
+    margin-top: 8px;
+    background: var(--bg-lighter);
     border-radius: 12px;
-    box-shadow: 0 16px 56px rgba(26, 21, 16, 0.15), 
-                inset 0 1px 1px rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(30px) saturate(180%);
-    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    max-height: 0;
     overflow: hidden;
-    transform-origin: top right;
+    opacity: 0;
     transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    z-index: 50;
+    z-index: 1000;
+  }
+
+  .navbar.admin-theme .navbar-dropdown {
+    background: var(--bg-light);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
   }
 
   .navbar-dropdown.open {
+    max-height: 500px;
     opacity: 1;
-    transform: scaleY(1) translateZ(0);
-    pointer-events: auto;
-  }
-
-  .navbar-dropdown:not(.open) {
-    opacity: 0;
-    transform: scaleY(0.9) translateZ(0);
-    pointer-events: none;
   }
 
   .navbar-dropdown-header {
-    padding: 16px 20px;
-    border-bottom: 1px solid rgba(240, 232, 224, 0.3);
-    background: rgba(250, 250, 248, 0.4);
-    backdrop-filter: blur(10px);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-lighter);
   }
 
   .navbar-dropdown-name {
     font-size: 14px;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--text-dark);
-    margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    margin: 0 0 4px 0;
   }
 
   .navbar-dropdown-email {
     font-size: 12px;
     color: var(--text-light);
-    margin: 4px 0 0 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    margin: 0;
   }
 
   .navbar-dropdown-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 20px;
+    padding: 12px 16px;
+    font-size: 14px;
     color: var(--text-gray);
     text-decoration: none;
-    font-family: 'Poppins', sans-serif;
-    font-size: 14px;
-    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     border: none;
     background: transparent;
     cursor: pointer;
@@ -447,13 +502,21 @@ const css = `
     padding-left: 24px;
   }
 
+  .navbar.admin-theme .navbar-dropdown-item:hover {
+    background: rgba(99, 102, 241, 0.1);
+  }
+
   .navbar-dropdown-item.logout {
     color: var(--primary-terra);
-    border-top: 1px solid rgba(240, 232, 224, 0.3);
+    border-top: 1px solid var(--border-lighter);
   }
 
   .navbar-dropdown-item.logout:hover {
     background: rgba(212, 82, 42, 0.12);
+  }
+
+  .navbar.admin-theme .navbar-dropdown-item.logout:hover {
+    background: rgba(99, 102, 241, 0.15);
   }
 
   .navbar-dropdown-emoji {
@@ -465,12 +528,16 @@ const css = `
 
 const Navbar = () => {
   const { user, logout, isAdmin } = useAuth();
+  const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [scrollDirection, setScrollDirection] = useState('up');
   const [lastScrollY, setLastScrollY] = useState(0);
   const navigate = useNavigate();
+
+  // Check if we're on admin page
+  const isAdminPage = location.pathname.startsWith('/admin');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -520,186 +587,188 @@ const Navbar = () => {
   return (
     <>
       <style>{css}</style>
-      <nav className={`navbar-root ${scrolled ? 'scrolled' : ''} ${scrollDirection === 'down' ? 'scroll-down' : 'scroll-up'}`}>
-        <div className="navbar-content">
-          {/* Logo */}
-          <Link to="/home" className="navbar-logo">
-            <span className="navbar-logo-emoji">🪔</span>
-            <span className="navbar-logo-text">EventVerse</span>
-          </Link>
+      <div className={`navbar ${isAdminPage ? 'admin-theme' : ''}`}>
+        <nav className={`navbar-root ${scrolled ? 'scrolled' : ''} ${scrollDirection === 'down' ? 'scroll-down' : 'scroll-up'}`}>
+          <div className="navbar-content">
+            {/* Logo */}
+            <Link to="/home" className="navbar-logo">
+              <span className="navbar-logo-emoji">🪔</span>
+              <span className="navbar-logo-text">EventVerse</span>
+            </Link>
 
-          {/* Desktop Nav Links */}
-          <div className="navbar-nav">
-            {navLinks.map((link) => (
-              <NavLink
-                key={link.to}
-                to={link.to}
-                className={({ isActive }) =>
-                  `navbar-nav-link ${isActive ? 'active' : ''}`
-                }
-              >
-                {link.label}
-              </NavLink>
-            ))}
-          </div>
-
-          {/* Desktop Actions */}
-          <div className="navbar-actions">
-            {!user ? (
-              <>
-                <Link to="/login" className="btn-ghost">
-                  Login
-                </Link>
-                <Link to="/register" className="btn-primary">
-                  Register
-                </Link>
-              </>
-            ) : (
-              <div className="navbar-user-menu">
-                <button
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="navbar-user-button"
-                  title={user.name}
+            {/* Desktop Nav Links */}
+            <div className="navbar-nav">
+              {navLinks.map((link) => (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  className={({ isActive }) =>
+                    `navbar-nav-link ${isActive ? 'active' : ''}`
+                  }
                 >
-                  {user.avatar ? (
-                    <img
-                      src={user.avatar}
-                      alt={user.name}
-                      className="navbar-user-avatar"
-                    />
-                  ) : (
-                    <div className="navbar-user-avatar-fallback">
-                      {getInitials(user.name)}
+                  {link.label}
+                </NavLink>
+              ))}
+            </div>
+
+            {/* Desktop Actions */}
+            <div className="navbar-actions">
+              {!user ? (
+                <>
+                  <Link to="/login" className="btn-ghost">
+                    Login
+                  </Link>
+                  <Link to="/register" className="btn-primary">
+                    Register
+                  </Link>
+                </>
+              ) : (
+                <div className="navbar-user-menu">
+                  <button
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                    className="navbar-user-button"
+                    title={user.name}
+                  >
+                    {user.avatar ? (
+                      <img
+                        src={user.avatar}
+                        alt={user.name}
+                        className="navbar-user-avatar"
+                      />
+                    ) : (
+                      <div className="navbar-user-avatar-fallback">
+                        {getInitials(user.name)}
+                      </div>
+                    )}
+                    <HiChevronDown className={`navbar-chevron ${dropdownOpen ? 'open' : ''}`} />
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  <div className={`navbar-dropdown ${dropdownOpen ? 'open' : ''}`}>
+                    <div className="navbar-dropdown-header">
+                      <p className="navbar-dropdown-name">{user.name}</p>
+                      <p className="navbar-dropdown-email">{user.email}</p>
                     </div>
-                  )}
-                  <HiChevronDown className={`navbar-chevron ${dropdownOpen ? 'open' : ''}`} />
-                </button>
 
-                {/* Dropdown Menu */}
-                <div className={`navbar-dropdown ${dropdownOpen ? 'open' : ''}`}>
-                  <div className="navbar-dropdown-header">
-                    <p className="navbar-dropdown-name">{user.name}</p>
-                    <p className="navbar-dropdown-email">{user.email}</p>
-                  </div>
-
-                  <Link
-                    to="/dashboard"
-                    onClick={() => setDropdownOpen(false)}
-                    className="navbar-dropdown-item"
-                  >
-                    <span className="navbar-dropdown-emoji">🎫</span>
-                    My Tickets
-                  </Link>
-
-                  <Link
-                    to="/profile"
-                    onClick={() => setDropdownOpen(false)}
-                    className="navbar-dropdown-item"
-                  >
-                    <span className="navbar-dropdown-emoji">👤</span>
-                    Profile
-                  </Link>
-
-                  {isAdmin && (
                     <Link
-                      to="/admin"
+                      to="/dashboard"
                       onClick={() => setDropdownOpen(false)}
                       className="navbar-dropdown-item"
                     >
-                      <span className="navbar-dropdown-emoji">⚙️</span>
-                      Admin Panel
+                      <span className="navbar-dropdown-emoji">🎫</span>
+                      My Tickets
                     </Link>
-                  )}
 
-                  <button
-                    onClick={() => {
-                      setDropdownOpen(false);
-                      logout();
-                    }}
-                    className="navbar-dropdown-item logout"
-                  >
-                    <span className="navbar-dropdown-emoji">🚪</span>
-                    Logout
-                  </button>
+                    <Link
+                      to="/profile"
+                      onClick={() => setDropdownOpen(false)}
+                      className="navbar-dropdown-item"
+                    >
+                      <span className="navbar-dropdown-emoji">👤</span>
+                      Profile
+                    </Link>
+
+                    {isAdmin && (
+                      <Link
+                        to="/admin"
+                        onClick={() => setDropdownOpen(false)}
+                        className="navbar-dropdown-item"
+                      >
+                        <span className="navbar-dropdown-emoji">⚙️</span>
+                        Admin Panel
+                      </Link>
+                    )}
+
+                    <button
+                      onClick={() => {
+                        setDropdownOpen(false);
+                        logout();
+                      }}
+                      className="navbar-dropdown-item logout"
+                    >
+                      <span className="navbar-dropdown-emoji">🚪</span>
+                      Logout
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+
+            {/* Mobile Toggle */}
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="navbar-mobile-toggle"
+            >
+              {mobileOpen ? <HiOutlineX /> : <HiOutlineMenu />}
+            </button>
           </div>
 
-          {/* Mobile Toggle */}
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="navbar-mobile-toggle"
-          >
-            {mobileOpen ? <HiOutlineX /> : <HiOutlineMenu />}
-          </button>
-        </div>
-
-        {/* Mobile Menu */}
-        <div className={`navbar-mobile-menu ${mobileOpen ? 'open' : ''}`}>
-          <div className="navbar-mobile-content">
-            {navLinks.map((link) => (
-              <NavLink
-                key={link.to}
-                to={link.to}
-                onClick={() => setMobileOpen(false)}
-                className={({ isActive }) =>
-                  `navbar-mobile-link ${isActive ? 'active' : ''}`
-                }
-              >
-                {link.label}
-              </NavLink>
-            ))}
-
-            {user ? (
-              <>
-                <Link
-                  to="/dashboard"
+          {/* Mobile Menu */}
+          <div className={`navbar-mobile-menu ${mobileOpen ? 'open' : ''}`}>
+            <div className="navbar-mobile-content">
+              {navLinks.map((link) => (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
                   onClick={() => setMobileOpen(false)}
-                  className="navbar-mobile-link"
+                  className={({ isActive }) =>
+                    `navbar-mobile-link ${isActive ? 'active' : ''}`
+                  }
                 >
-                  <span>🎫</span> My Tickets
-                </Link>
-                <Link
-                  to="/profile"
-                  onClick={() => setMobileOpen(false)}
-                  className="navbar-mobile-link"
-                >
-                  <span>👤</span> Profile
-                </Link>
-                {isAdmin && (
+                  {link.label}
+                </NavLink>
+              ))}
+
+              {user ? (
+                <>
                   <Link
-                    to="/admin"
+                    to="/dashboard"
                     onClick={() => setMobileOpen(false)}
                     className="navbar-mobile-link"
                   >
-                    <span>⚙️</span> Admin Panel
+                    <span>🎫</span> My Tickets
                   </Link>
-                )}
-                <button
-                  onClick={() => {
-                    setMobileOpen(false);
-                    logout();
-                  }}
-                  className="navbar-mobile-link"
-                  style={{ color: 'var(--primary-terra)' }}
-                >
-                  <span>🚪</span> Logout
-                </button>
-              </>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(240, 232, 224, 0.3)' }}>
-                <Link to="/login" className="btn-ghost" style={{ width: '100%', justifyContent: 'center' }}>
-                  Login
-                </Link>
-                <Link to="/register" className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-                  Register
-                </Link>
-              </div>
-            )}
+                  <Link
+                    to="/profile"
+                    onClick={() => setMobileOpen(false)}
+                    className="navbar-mobile-link"
+                  >
+                    <span>👤</span> Profile
+                  </Link>
+                  {isAdmin && (
+                    <Link
+                      to="/admin"
+                      onClick={() => setMobileOpen(false)}
+                      className="navbar-mobile-link"
+                    >
+                      <span>⚙️</span> Admin Panel
+                    </Link>
+                  )}
+                  <button
+                    onClick={() => {
+                      setMobileOpen(false);
+                      logout();
+                    }}
+                    className="navbar-mobile-link"
+                    style={{ color: 'var(--primary-terra)' }}
+                  >
+                    <span>🚪</span> Logout
+                  </button>
+                </>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px', paddingTop: '16px', borderTop: `1px solid var(--border-lighter)` }}>
+                  <Link to="/login" className="btn-ghost" style={{ width: '100%', justifyContent: 'center' }}>
+                    Login
+                  </Link>
+                  <Link to="/register" className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
+                    Register
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      </nav>
+        </nav>
+      </div>
     </>
   );
 };

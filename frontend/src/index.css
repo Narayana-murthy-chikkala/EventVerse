@@ -90,7 +90,7 @@ body {
   min-height: 100vh;
   background: var(--bg-light);
   color: var(--text-dark);
-  font-family: 'Poppins', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   font-size: 15px;
   line-height: 1.75;
   overflow-x: hidden;
@@ -106,7 +106,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: 'Playfair Display', serif;
+  font-family: 'DM Sans', sans-serif;
   color: var(--text-dark);
   letter-spacing: -0.02em;
   line-height: 1.15;
@@ -137,7 +137,7 @@ small {
 }
 
 .font-serif {
-  font-family: 'Lora', serif;
+  font-family: 'DM Sans', sans-serif;
 }
 
 /* ─────────────────────────────────────────────
@@ -246,7 +246,7 @@ a:hover {
   color: #fff;
   font-size: 15px;
   font-weight: 600;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   box-shadow: 0 8px 20px rgba(212, 82, 42, 0.2);
   transition: var(--transition-smooth);
 }
@@ -272,7 +272,7 @@ a:hover {
   border-radius: var(--radius-sm);
   font-size: 15px;
   font-weight: 600;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   transition: var(--transition-smooth);
 }
 
@@ -380,7 +380,7 @@ select {
   color: var(--text-dark);
   border-radius: 12px;
   padding: 14px 16px;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   font-size: 15px;
   transition: var(--transition-smooth);
 }

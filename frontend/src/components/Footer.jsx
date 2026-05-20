@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { FaInstagram, FaFacebookF, FaYoutube, FaTwitter } from 'react-icons/fa';
 
 const css = `
@@ -15,6 +15,19 @@ const css = `
     --text-light: #8B7D6F;
     --border-light: #E5DDD5;
     --border-lighter: #F0E8E0;
+  }
+
+  .footer.admin-theme {
+    --primary-terra: #6366F1;
+    --primary-light: #818CF8;
+    --white: #FFFFFF;
+    --bg-light: #1E293B;
+    --bg-lighter: #0F172A;
+    --text-dark: #F8FAFC;
+    --text-gray: #CBD5E1;
+    --text-light: #94A3B8;
+    --border-light: rgba(255, 255, 255, 0.08);
+    --border-lighter: rgba(255, 255, 255, 0.12);
   }
 
   .footer-root {
@@ -71,7 +84,7 @@ const css = `
   }
 
   .footer-logo-text {
-    font-family: 'Playfair Display', serif;
+    font-family: 'DM Sans', sans-serif;
     font-size: 22px;
     font-weight: 800;
     background: linear-gradient(135deg, var(--primary-terra) 0%, var(--primary-light) 100%);
@@ -258,6 +271,8 @@ const css = `
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const location = useLocation();
+  const isAdminPage = location.pathname.startsWith('/admin');
 
   const categories = [
     'Classical Music',
@@ -270,7 +285,8 @@ const Footer = () => {
   return (
     <>
       <style>{css}</style>
-      <footer className="footer-root">
+      <div className={`footer ${isAdminPage ? 'admin-theme' : ''}`}>
+        <footer className="footer-root">
         <div className="footer-container">
           <div className="footer-grid">
             {/* Brand Section */}
@@ -385,6 +401,7 @@ const Footer = () => {
           </div>
         </div>
       </footer>
+      </div>
     </>
   );
 };
