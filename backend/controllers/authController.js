@@ -363,7 +363,7 @@ const googleLoginUrl = async (req, res, next) => {
     const client = new OAuth2Client(
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET,
-      `${process.env.CLIENT_URL}/auth/google/callback`
+      process.env.GOOGLE_CALLBACK_URL || `${process.env.CLIENT_URL}/api/v1/auth/google/callback`
     );
 
     const authUrl = client.generateAuthUrl({
@@ -395,7 +395,7 @@ const googleCallback = async (req, res, next) => {
     const client = new OAuth2Client(
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET,
-      `${process.env.CLIENT_URL}/auth/google/callback`
+      process.env.GOOGLE_CALLBACK_URL || `${process.env.CLIENT_URL}/api/v1/auth/google/callback`
     );
 
     const { tokens } = await client.getToken(code);

@@ -16,7 +16,7 @@ router.get(
 router.get(
   "/google/callback",
   passport.authenticate("google", {
-    failureRedirect: "/login",
+    failureRedirect: `${process.env.CLIENT_URL || 'http://localhost:5173'}/login`,
     session: false,
   }),
   async (req, res) => {
@@ -33,8 +33,9 @@ router.get(
       }
     );
 
+    const redirectClientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
     res.redirect(
-      `${process.env.CLIENT_URL}/google-success?token=${token}`
+      `${redirectClientUrl}/google-success?token=${token}`
     );
   }
 );

@@ -1,10 +1,9 @@
 import axios from 'axios';
 
+const rawApiUrl = import.meta.env.VITE_API_URL || 'https://eventverse-backend-8ue1.onrender.com';
+const backendBaseUrl = rawApiUrl.replace(/\/+$/, '').replace(/\/api\/v1$/i, '');
 const api = axios.create({
-  baseURL:
-    (import.meta.env.VITE_API_URL ||
-      'https://eventverse-backend-8ue1.onrender.com') +
-    '/api/v1',
+  baseURL: `${backendBaseUrl}/api/v1`,
 });
 
 api.interceptors.request.use(
@@ -12,6 +11,9 @@ api.interceptors.request.use(
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    if (config.baseURL && config.baseURL.endsWith('/') && config.url?.startsWith('/')) {
+      config.url = config.url.replace(/^\/+/g, '');
     }
     return config;
   },

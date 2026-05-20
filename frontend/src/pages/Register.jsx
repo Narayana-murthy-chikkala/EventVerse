@@ -8,6 +8,8 @@ import { HiOutlineEye, HiOutlineEyeOff, HiExclamationCircle, HiOutlineCheckCircl
 const Register = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const rawBackendUrl = import.meta.env.VITE_API_URL || 'https://eventverse-backend-8ue1.onrender.com';
+  const BACKEND_URL = rawBackendUrl.replace(/\/+$/, '').replace(/\/api\/v1$/i, '');
   const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -59,7 +61,7 @@ const Register = () => {
   };
 
   const handleGoogleRegister = () => {
-    window.location.href = 'https://eventverse-backend-8ue1.onrender.com/api/auth/google';
+    window.location.href = `${BACKEND_URL}/api/auth/google`;
   };
 
   const inputStyle = (hasError) => ({
@@ -277,12 +279,7 @@ const Register = () => {
         {/* Google */}
         <button
           type="button"
-          onClick={() => {
-            window.open(
-              "https://eventverse-backend-8ue1.onrender.com/api/auth/google",
-              "_self"
-            );
-          }}
+          onClick={handleGoogleRegister}
           disabled={loading}
           style={{
             width: '100%', height: '48px', background: 'var(--bg-lighter)',

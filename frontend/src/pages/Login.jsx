@@ -8,6 +8,8 @@ import { HiOutlineEye, HiOutlineEyeOff, HiExclamationCircle } from 'react-icons/
 const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const rawBackendUrl = import.meta.env.VITE_API_URL || 'https://eventverse-backend-8ue1.onrender.com';
+  const BACKEND_URL = rawBackendUrl.replace(/\/+$/, '').replace(/\/api\/v1$/i, '');
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
@@ -40,7 +42,7 @@ const Login = () => {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = 'https://eventverse-backend-8ue1.onrender.com/api/auth/google';
+    window.location.href = `${BACKEND_URL}/api/auth/google`;
   };
 
   return (
@@ -265,12 +267,7 @@ const Login = () => {
           }}
           onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--primary-terra)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(212,82,42,0.08)'; }}
           onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-light)'; e.currentTarget.style.boxShadow = 'none'; }}
-          onClick={() => {
-            window.open(
-              "https://eventverse-backend-8ue1.onrender.com/api/auth/google",
-              "_self"
-            );
-          }}
+          onClick={handleGoogleLogin}
         >
           <svg style={{ width: '18px', height: '18px', flexShrink: 0 }} viewBox="0 0 24 24">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
