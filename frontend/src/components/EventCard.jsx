@@ -1,77 +1,309 @@
 import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { getEventThumbnail } from '../services/eventService';
+import { blobToObjectUrl, revokeObjectUrl } from '../utils/imageUtils';
+import { HiOutlineCalendar, HiOutlineLocationMarker, HiChevronRight } from 'react-icons/hi';
+
+const css = `
+  .event-card-root {
+    background: var(--bg-lighter);
+    border: 1.5px solid var(--border-light);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(26, 21, 16, 0.02);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    cursor: pointer;
+  }
+
+  .event-card-root:hover {
+    transform: translateY(-6px);
+    border-color: rgba(212, 82, 42, 0.3);
+    box-shadow: 0 12px 32px rgba(212, 82, 42, 0.08);
+  }
+
+  .event-card-thumbnail-container {
+    position: relative;
+    height: 210px;
+    width: 100%;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .event-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .event-card-root:hover .event-card-img {
+    transform: scale(1.05);
+  }
+
+  .event-card-badge-row {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    right: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .card-category-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 12px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-radius: 999px;
+    backdrop-filter: blur(8px);
+    line-height: 1;
+  }
+
+  .badge-music    { background: rgba(212, 82, 42, 0.08);  color: var(--primary-terra); border: 1.5px solid rgba(212, 82, 42, 0.2); }
+  .badge-dance    { background: rgba(107, 141, 94, 0.08); color: var(--sage);           border: 1.5px solid rgba(107, 141, 94, 0.2); }
+  .badge-art      { background: rgba(201, 168, 76, 0.08); color: var(--gold);           border: 1.5px solid rgba(201, 168, 76, 0.2); }
+  .badge-food     { background: rgba(220, 38, 38, 0.08);  color: #DC2626;              border: 1.5px solid rgba(220, 38, 38, 0.2); }
+  .badge-theater  { background: rgba(37, 99, 235, 0.08);  color: #2563EB;              border: 1.5px solid rgba(37, 99, 235, 0.2); }
+  .badge-folk     { background: rgba(219, 39, 119, 0.08); color: #DB2777;              border: 1.5px solid rgba(219, 39, 119, 0.2); }
+  .badge-cultural { background: rgba(124, 58, 237, 0.08); color: #7C3AED;              border: 1.5px solid rgba(124, 58, 237, 0.2); }
+  .badge-default  { background: rgba(90, 80, 72, 0.08);   color: var(--text-gray);     border: 1.5px solid rgba(90, 80, 72, 0.2); }
+
+  .card-price-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 999px;
+    backdrop-filter: blur(8px);
+    line-height: 1;
+    background: rgba(255, 255, 255, 0.85);
+    color: var(--text-dark);
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  }
+
+  .card-featured-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 12px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-radius: 999px;
+    line-height: 1;
+    background: linear-gradient(135deg, #F59E0B, #D97706);
+    color: white;
+    border: 1.5px solid rgba(251, 191, 36, 0.2);
+    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.2);
+  }
+
+  .event-card-body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+  }
+
+  .event-card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 19px;
+    font-weight: 800;
+    color: var(--text-dark);
+    line-height: 1.35;
+    margin-bottom: 14px;
+    transition: color 0.2s ease;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .event-card-root:hover .event-card-title {
+    color: var(--primary-terra);
+  }
+
+  .event-card-meta-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: auto;
+    margin-bottom: 20px;
+  }
+
+  .event-card-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-gray);
+    min-width: 0;
+  }
+
+  .event-card-meta-icon {
+    color: var(--primary-terra);
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+
+  .event-card-meta-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .event-card-divider {
+    height: 1px;
+    background: var(--border-lighter);
+    border: none;
+    margin: 0 0 16px 0;
+  }
+
+  .event-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .event-card-spots-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-light);
+  }
+
+  .event-card-progress-bg {
+    width: 100%;
+    height: 4.5px;
+    background: rgba(26, 21, 16, 0.06);
+    border-radius: 99px;
+    overflow: hidden;
+    margin-top: 6px;
+  }
+
+  .event-card-chevron-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--bg-light);
+    border: 1.5px solid var(--border-light);
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    flex-shrink: 0;
+  }
+
+  .event-card-root:hover .event-card-chevron-btn {
+    background: var(--primary-terra);
+    border-color: var(--primary-terra);
+    color: var(--white);
+    transform: scale(1.08);
+    box-shadow: 0 4px 10px rgba(212, 82, 42, 0.2);
+  }
+`;
 
 const EventCard = ({ event }) => {
   const navigate = useNavigate();
+  const [thumbnailUrl, setThumbnailUrl] = useState(null);
+
+  useEffect(() => {
+    if (event._id) {
+      getEventThumbnail(event._id)
+        .then((res) => {
+          if (res.data instanceof Blob) {
+            setThumbnailUrl(blobToObjectUrl(res.data));
+          }
+        })
+        .catch((err) => console.error('Error loading thumbnail:', err));
+    }
+
+    return () => {
+      if (thumbnailUrl) {
+        revokeObjectUrl(thumbnailUrl);
+      }
+    };
+  }, [event._id]);
 
   const isSoldOut = event.registeredCount >= event.capacity;
   const spotsLeft = event.capacity - event.registeredCount;
   const fillPercentage = Math.min((event.registeredCount / event.capacity) * 100, 100);
 
-  // Category Colors Mapped for Badges
   const getCategoryStyles = (category) => {
-    switch (category) {
-      case 'Classical Music': return 'bg-[rgba(124,58,237,0.2)] text-[#A855F7] border border-[rgba(124,58,237,0.3)]';
-      case 'Classical Dance': return 'bg-[rgba(6,182,212,0.2)] text-[#22D3EE] border border-[rgba(6,182,212,0.3)]';
-      case 'Art Exhibition': return 'bg-[rgba(245,158,11,0.2)] text-[#FBBF24] border border-[rgba(245,158,11,0.3)]';
-      case 'Food Festival': return 'bg-[rgba(239,68,68,0.2)] text-[#F87171] border border-[rgba(239,68,68,0.3)]';
-      case 'Theater & Drama': return 'bg-[rgba(59,130,246,0.2)] text-[#60A5FA] border border-[rgba(59,130,246,0.3)]';
-      case 'Folk Dance': return 'bg-[rgba(236,72,153,0.2)] text-[#F472B6] border border-[rgba(236,72,153,0.3)]';
-      default: return 'bg-[rgba(255,255,255,0.1)] text-white border border-[rgba(255,255,255,0.2)]';
+    if (!category) return 'badge-default';
+    const cat = category.toLowerCase().trim();
+    switch (cat) {
+      case 'classical music': return 'badge-music';
+      case 'classical dance': return 'badge-dance';
+      case 'art exhibition': return 'badge-art';
+      case 'food festival': return 'badge-food';
+      case 'theater & drama': return 'badge-theater';
+      case 'folk dance': return 'badge-folk';
+      case 'cultural parade': return 'badge-cultural';
+      default: return 'badge-default';
     }
   };
 
-  const getCapacityGradient = (percent) => {
-    if (percent > 80) return 'linear-gradient(to right, #EF4444, #B91C1C)'; // Red
-    if (percent > 50) return 'linear-gradient(to right, #F59E0B, #D97706)'; // Amber
-    return 'linear-gradient(to right, #10B981, #059669)'; // Green
+  const getCapacityColor = (percent) => {
+    if (percent > 80) return '#EF4444';
+    if (percent > 50) return '#F59E0B';
+    return 'var(--sage)';
   };
 
-  const fallbackImage = 'linear-gradient(135deg, #1e1e2e, #2d1b69)';
+  const fallbackImage = 'linear-gradient(135deg, #F5F0EB, #E5DDD5)';
+
+  const displayPrice = event.isFree || event.price === 0 ? 'FREE' : `₹${event.earlyBirdPrice || event.price}`;
 
   return (
-    <div
-      onClick={() => navigate(`/events/${event._id}`)}
-      className="group cursor-pointer bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-[14px] overflow-hidden transition-all duration-[280ms] ease-[var(--ease-default)] hover:-translate-y-1 hover:border-[rgba(124,58,237,0.4)] hover:shadow-glow-primary flex flex-col"
-    >
-      {/* Thumbnail Area */}
-      <div className="relative h-[200px] w-full overflow-hidden flex-shrink-0">
-        <div 
-          className="w-full h-full group-hover:scale-105 transition-transform duration-[400ms] ease-[var(--ease-default)]"
-          style={{ 
-            background: event.thumbnail ? `url(${event.thumbnail}) center/cover no-repeat` : fallbackImage 
-          }}
-        />
+    <div className="event-card-root" onClick={() => navigate(`/events/${event._id}`)}>
+      <style>{css}</style>
+      
+      {/* Thumbnail */}
+      <div className="event-card-thumbnail-container">
+        {thumbnailUrl ? (
+          <img src={thumbnailUrl} alt={event.title} className="event-card-img" />
+        ) : (
+          <div className="w-full h-full event-card-img" style={{ background: fallbackImage }} />
+        )}
         
-        {/* Dark overlay at bottom for text contrast */}
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[rgba(10,10,15,0.9)] to-transparent pointer-events-none" />
-
-        {/* Badges */}
-        <div className="absolute top-3 left-3 right-3 flex justify-between items-start pointer-events-none">
-          <span 
-            className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-[11px] font-[700] tracking-[0.05em] uppercase backdrop-blur-[8px] ${getCategoryStyles(event.category)}`}
-          >
+        {/* Badges Overlay */}
+        <div className="event-card-badge-row">
+          <span className={`card-category-badge ${getCategoryStyles(event.category)}`}>
             {event.category}
           </span>
           
           <div className="flex flex-col items-end gap-1.5">
             {event.isFeatured && (
-              <span className="bg-gradient-to-r from-amber-400 to-yellow-600 text-white px-2.5 py-1 rounded-full text-[11px] font-[700] tracking-[0.05em] uppercase shadow-lg border border-yellow-300/30">
+              <span className="card-featured-badge">
                 ✦ Featured
               </span>
             )}
-            <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-[12px] font-[700] tracking-[0.05em] backdrop-blur-[8px] ${
-              event.isFree || event.price === 0 
-                ? 'bg-[rgba(16,185,129,0.15)] text-[#10B981] border border-[rgba(16,185,129,0.3)]' 
-                : 'bg-[rgba(255,255,255,0.1)] text-white border border-[rgba(255,255,255,0.2)]'
-            }`}>
-              {event.isFree || event.price === 0 ? 'FREE' : `₹${event.earlyBirdPrice || event.price}`}
+            <span className="card-price-badge">
+              {displayPrice}
             </span>
           </div>
         </div>
 
         {isSoldOut && (
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center">
-            <span className="border-2 border-danger text-danger px-4 py-1.5 rounded-md font-[800] tracking-widest uppercase rotate-[-12deg] text-lg bg-black/40">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-20">
+            <span className="border-2 border-red-500 text-red-500 px-4 py-1.5 rounded-md font-[800] tracking-widest uppercase rotate-[-12deg] text-lg bg-black/40">
               Sold Out
             </span>
           </div>
@@ -79,49 +311,43 @@ const EventCard = ({ event }) => {
       </div>
 
       {/* Content Area */}
-      <div className="p-4 sm:p-5 flex flex-col flex-grow">
-        <h3 className="text-[16px] font-[700] leading-[1.3] text-text-primary line-clamp-2 mb-3">
-          {event.title}
-        </h3>
+      <div className="event-card-body">
+        <h3 className="event-card-title">{event.title}</h3>
 
-        <div className="space-y-2 mt-auto mb-5">
-          <div className="flex items-center gap-2 text-[13px] text-text-muted">
-            <svg className="w-4 h-4 text-accent-cyan flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <span className="truncate">{new Date(event.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })} {event.time && `• ${event.time}`}</span>
+        <div className="event-card-meta-list">
+          <div className="event-card-meta-item">
+            <HiOutlineCalendar className="event-card-meta-icon" />
+            <span className="event-card-meta-text">
+              {new Date(event.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+              {event.time && ` • ${event.time}`}
+            </span>
           </div>
-          <div className="flex items-center gap-2 text-[13px] text-text-muted">
-            <svg className="w-4 h-4 text-accent-cyan flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            <span className="truncate">{event.venue}, {event.city}</span>
+          <div className="event-card-meta-item">
+            <HiOutlineLocationMarker className="event-card-meta-icon" />
+            <span className="event-card-meta-text">{event.venue}, {event.city}</span>
           </div>
         </div>
 
+        <hr className="event-card-divider" />
+
         {/* Capacity / Action Bottom Row */}
-        <div className="pt-4 border-t border-[rgba(255,255,255,0.06)] flex items-center justify-between gap-4 mt-auto">
-          <div className="flex-1">
-            <div className="flex justify-between items-end mb-1.5">
-              <span className="text-[11px] font-[600] text-text-muted uppercase tracking-wider text-left">
-                {isSoldOut ? 'Capacity Reached' : `${spotsLeft} spots left`}
-              </span>
-            </div>
-            <div className="w-full h-1 bg-[rgba(255,255,255,0.08)] rounded-full overflow-hidden">
+        <div className="event-card-footer">
+          <div className="flex-1 min-w-0">
+            <span className="event-card-spots-label">
+              {isSoldOut ? 'Capacity Reached' : `${spotsLeft} spots left`}
+            </span>
+            <div className="event-card-progress-bg">
               <div 
                 className="h-full rounded-full transition-all duration-1000 ease-out"
                 style={{ 
                   width: `${fillPercentage}%`,
-                  background: getCapacityGradient(fillPercentage)
+                  backgroundColor: getCapacityColor(fillPercentage)
                 }}
               />
             </div>
           </div>
-          <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] flex-shrink-0 group-hover:bg-accent-primary group-hover:border-transparent transition-colors duration-300">
-            <svg className="w-4 h-4 text-text-muted group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-            </svg>
+          <div className="event-card-chevron-btn">
+            <HiChevronRight className="w-5 h-5" />
           </div>
         </div>
       </div>

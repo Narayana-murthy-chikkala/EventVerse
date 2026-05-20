@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { Toaster } from 'react-hot-toast';
 import AppRoutes from './routes/AppRoutes';
 import Loader from './components/Loader';
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
           },
         }}
       />
+      <ScrollToTop />
       <Suspense fallback={<Loader />}>
         <AppRoutes />
       </Suspense>

@@ -99,12 +99,22 @@ const eventSchema = new mongoose.Schema(
       default: false,
     },
     images: {
-      type: [String],
+      type: [
+        {
+          data: Buffer,
+          filename: String,
+          mimetype: String,
+        },
+      ],
       default: [],
     },
     thumbnail: {
-      type: String,
-      default: '',
+      type: {
+        data: Buffer,
+        filename: String,
+        mimetype: String,
+      },
+      default: {},
     },
     videoUrl: {
       type: String,

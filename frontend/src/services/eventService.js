@@ -18,6 +18,12 @@ export const updateEvent = (id, formData) =>
 
 export const deleteEvent = (id) => api.delete(`/events/${id}`);
 
+export const getEventImage = (eventId, imageIndex = 0) => 
+  api.get(`/events/${eventId}/images/${imageIndex}`, { responseType: 'blob' });
+
+export const getEventThumbnail = (eventId) => 
+  api.get(`/events/${eventId}/thumbnail`, { responseType: 'blob' });
+
 export const registerForEvent = (data) => api.post('/registrations/register', data);
 export const verifyPayment = (data) => api.post('/registrations/verify-payment', data);
 export const cancelRegistration = (id) => api.delete(`/registrations/${id}/cancel`);

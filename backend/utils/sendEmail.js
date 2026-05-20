@@ -50,7 +50,7 @@ const welcomeEmailTemplate = (name) => {
       <p style="color:#78716C;font-size:13px;text-align:center;">May every festival bring joy to your heart ✨</p>
     </div>
     <div style="background:#1C1917;padding:20px;text-align:center;">
-      <p style="color:#A8A29E;margin:0;font-size:12px;">© ${new Date().getFullYear()} EventVerse. Made with ❤️ for Indian Culture</p>
+      <p style="color:#A8A29E;margin:0;font-size:12px;">© ${new Date().getFullYear()} EventVerse. Made with ❤️ for Global Culture</p>
     </div>
   </div>
 </body>
@@ -95,7 +95,7 @@ const registrationConfirmTemplate = (name, eventTitle, eventDate, eventVenue, qr
       </div>
     </div>
     <div style="background:#1C1917;padding:20px;text-align:center;">
-      <p style="color:#A8A29E;margin:0;font-size:12px;">© ${new Date().getFullYear()} EventVerse. Made with ❤️ for Indian Culture</p>
+      <p style="color:#A8A29E;margin:0;font-size:12px;">© ${new Date().getFullYear()} EventVerse. Made with ❤️ for Global Culture</p>
     </div>
   </div>
 </body>
@@ -128,7 +128,7 @@ const passwordResetTemplate = (name, otp) => {
       <p style="color:#78716C;font-size:13px;line-height:1.6;">If you didn't request this reset, please ignore this email. Your account remains secure.</p>
     </div>
     <div style="background:#1C1917;padding:20px;text-align:center;">
-      <p style="color:#A8A29E;margin:0;font-size:12px;">© ${new Date().getFullYear()} EventVerse. Made with ❤️ for Indian Culture</p>
+      <p style="color:#A8A29E;margin:0;font-size:12px;">© ${new Date().getFullYear()} EventVerse. Made with ❤️ for Global Culture</p>
     </div>
   </div>
 </body>

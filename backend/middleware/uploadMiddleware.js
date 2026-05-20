@@ -1,5 +1,4 @@
 const multer = require('multer');
-const cloudinary = require('../config/cloudinary');
 
 const storage = multer.memoryStorage();
 
@@ -24,21 +23,4 @@ const uploadMultiple = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 }).array('images', 8);
 
-const uploadToCloudinary = (buffer, folder) => {
-  return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      {
-        folder,
-        resource_type: 'image',
-        transformation: [{ quality: 'auto', fetch_format: 'auto' }],
-      },
-      (error, result) => {
-        if (error) return reject(error);
-        resolve(result.secure_url);
-      }
-    );
-    stream.end(buffer);
-  });
-};
-
-module.exports = { uploadSingle, uploadMultiple, uploadToCloudinary };
+module.exports = { uploadSingle, uploadMultiple };

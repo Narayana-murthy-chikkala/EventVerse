@@ -35,10 +35,11 @@ const getDashboardStats = async (req, res, next) => {
         .sort({ registeredAt: -1 })
         .limit(5)
         .populate('user', 'name email avatar')
-        .populate('event', 'title date thumbnail'),
+        .populate('event', 'title date thumbnail.filename thumbnail.mimetype'),
       Event.find({ status: 'upcoming', date: { $gte: now } })
         .sort({ date: 1 })
-        .limit(5),
+        .limit(5)
+        .select('-images.data -thumbnail.data'),
       Registration.aggregate([
         {
           $match: {
@@ -208,7 +209,7 @@ const getAllRegistrations = async (req, res, next) => {
     const totalRegistrations = await Registration.countDocuments(filter);
     const registrations = await Registration.find(filter)
       .populate('user', 'name email avatar')
-      .populate('event', 'title date thumbnail')
+      .populate('event', 'title date thumbnail.filename thumbnail.mimetype')
       .sort({ registeredAt: -1 })
       .skip(skip)
       .limit(limit);

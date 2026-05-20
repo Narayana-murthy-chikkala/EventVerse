@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Lora:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 /* ─────────────────────────────────────────────
@@ -38,24 +38,18 @@
   --shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.08);
 
   /* GRADIENTS */
-  --gradient-primary: linear-gradient(
-    135deg,
-    var(--primary-terra) 0%,
-    var(--primary-light) 100%
-  );
+  --gradient-primary: linear-gradient(135deg,
+      var(--primary-terra) 0%,
+      var(--primary-light) 100%);
 
-  --gradient-gold: linear-gradient(
-    135deg,
-    var(--gold) 0%,
-    var(--gold-light) 100%
-  );
+  --gradient-gold: linear-gradient(135deg,
+      var(--gold) 0%,
+      var(--gold-light) 100%);
 
-  --gradient-divider: linear-gradient(
-    90deg,
-    transparent 0%,
-    var(--border-light) 50%,
-    transparent 100%
-  );
+  --gradient-divider: linear-gradient(90deg,
+      transparent 0%,
+      var(--border-light) 50%,
+      transparent 100%);
 
   /* GLASS */
   --glass-bg: rgba(255, 255, 255, 0.72);
@@ -309,11 +303,9 @@ a:hover {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(212, 82, 42, 0.04),
-    transparent 40%
-  );
+  background: linear-gradient(135deg,
+      rgba(212, 82, 42, 0.04),
+      transparent 40%);
   opacity: 0;
   transition: var(--transition-smooth);
 }
@@ -550,31 +542,31 @@ select:focus {
    SPACING UTILITIES
 ───────────────────────────────────────────── */
 
-.space-y-2 > * + * {
+.space-y-2>*+* {
   margin-top: 0.5rem;
 }
 
-.space-y-3 > * + * {
+.space-y-3>*+* {
   margin-top: 0.75rem;
 }
 
-.space-y-4 > * + * {
+.space-y-4>*+* {
   margin-top: 1rem;
 }
 
-.space-y-6 > * + * {
+.space-y-6>*+* {
   margin-top: 1.5rem;
 }
 
-.space-x-2 > * + * {
+.space-x-2>*+* {
   margin-left: 0.5rem;
 }
 
-.space-x-3 > * + * {
+.space-x-3>*+* {
   margin-left: 0.75rem;
 }
 
-.space-x-4 > * + * {
+.space-x-4>*+* {
   margin-left: 1rem;
 }
 

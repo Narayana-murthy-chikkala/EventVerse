@@ -128,11 +128,18 @@ const registerForEvent = async (req, res, next) => {
       specialRequests: specialRequests || '',
     });
 
-    const order = await razorpay.orders.create({
-      amount: totalAmount * 100,
-      currency: 'INR',
-      receipt: tempRegistration._id.toString(),
-    });
+    let order;
+    const isMock = process.env.RAZORPAY_KEY_ID === 'your_razorpay_key_id' || !process.env.RAZORPAY_KEY_ID;
+    
+    if (isMock) {
+      order = { id: `mock_order_${Date.now()}` };
+    } else {
+      order = await razorpay.orders.create({
+        amount: totalAmount * 100,
+        currency: 'INR',
+        receipt: tempRegistration._id.toString(),
+      });
+    }
 
     tempRegistration.orderId = order.id;
     await tempRegistration.save();
@@ -167,14 +174,19 @@ const verifyPayment = async (req, res, next) => {
       throw new Error('Payment details are required');
     }
 
-    const expectedSignature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-      .update(`${razorpayOrderId}|${razorpayPaymentId}`)
-      .digest('hex');
+    const isMock = process.env.RAZORPAY_KEY_ID === 'your_razorpay_key_id' || !process.env.RAZORPAY_KEY_ID;
+    const isMockVerification = isMock && razorpayOrderId.startsWith('mock_order_') && razorpayPaymentId === 'mock_payment_id';
 
-    if (expectedSignature !== razorpaySignature) {
-      res.statusCode = 400;
-      throw new Error('Payment verification failed');
+    if (!isMockVerification) {
+      const expectedSignature = crypto
+        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+        .update(`${razorpayOrderId}|${razorpayPaymentId}`)
+        .digest('hex');
+
+      if (expectedSignature !== razorpaySignature) {
+        res.statusCode = 400;
+        throw new Error('Payment verification failed');
+      }
     }
 
     const registration = await Registration.findById(registrationId);

@@ -1,6 +1,5 @@
 const User = require('../models/User');
 const Registration = require('../models/Registration');
-const { uploadToCloudinary } = require('../middleware/uploadMiddleware');
 
 const getProfile = async (req, res, next) => {
   try {
@@ -39,8 +38,9 @@ const updateProfile = async (req, res, next) => {
     }
 
     if (req.file) {
-      const avatarUrl = await uploadToCloudinary(req.file.buffer, 'avatars');
-      user.avatar = avatarUrl;
+      const base64Image = req.file.buffer.toString('base64');
+      const avatarDataUri = `data:${req.file.mimetype};base64,${base64Image}`;
+      user.avatar = avatarDataUri;
     }
 
     const { name, bio, phone, city, favoriteCategories } = req.body;
@@ -71,7 +71,7 @@ const updateProfile = async (req, res, next) => {
 const getMyRegistrations = async (req, res, next) => {
   try {
     const registrations = await Registration.find({ user: req.user._id })
-      .populate('event', 'title thumbnail date venue city category status price isFree')
+      .populate('event', 'title thumbnail.filename thumbnail.mimetype date venue city category status price isFree')
       .sort({ registeredAt: -1 });
 
     res.status(200).json({

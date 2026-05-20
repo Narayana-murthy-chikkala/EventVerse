@@ -1,5 +1,4 @@
 const Event = require('../models/Event');
-const { uploadToCloudinary } = require('../middleware/uploadMiddleware');
 
 const getAllEvents = async (req, res, next) => {
   try {
@@ -63,7 +62,8 @@ const getAllEvents = async (req, res, next) => {
       .sort(sortObj)
       .skip(skip)
       .limit(limit)
-      .populate('organizer', 'name avatar');
+      .populate('organizer', 'name avatar')
+      .select('-images.data -thumbnail.data');
 
     res.status(200).json({
       success: true,
@@ -82,10 +82,9 @@ const getAllEvents = async (req, res, next) => {
 
 const getEventById = async (req, res, next) => {
   try {
-    const event = await Event.findById(req.params.id).populate(
-      'organizer',
-      'name avatar bio'
-    );
+    const event = await Event.findById(req.params.id)
+      .populate('organizer', 'name avatar bio')
+      .select('-images.data -thumbnail.data');
 
     if (!event) {
       res.statusCode = 404;
@@ -104,22 +103,25 @@ const getEventById = async (req, res, next) => {
 
 const createEvent = async (req, res, next) => {
   try {
-    const imageUrls = [];
+    const imageObjects = [];
 
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
-        const url = await uploadToCloudinary(file.buffer, 'festival-events');
-        imageUrls.push(url);
+        imageObjects.push({
+          data: file.buffer,
+          filename: file.originalname,
+          mimetype: file.mimetype,
+        });
       }
     }
 
     const eventData = { ...req.body };
     eventData.organizer = req.user._id;
 
-    if (imageUrls.length > 0) {
-      eventData.images = imageUrls;
+    if (imageObjects.length > 0) {
+      eventData.images = imageObjects;
       if (!eventData.thumbnail) {
-        eventData.thumbnail = imageUrls[0];
+        eventData.thumbnail = imageObjects[0];
       }
     }
 
@@ -149,6 +151,7 @@ const createEvent = async (req, res, next) => {
       data: { event },
     });
   } catch (error) {
+    console.error('Event creation error:', error);
     next(error);
   }
 };
@@ -163,14 +166,17 @@ const updateEvent = async (req, res, next) => {
     }
 
     if (req.files && req.files.length > 0) {
-      const newImageUrls = [];
+      const newImageObjects = [];
       for (const file of req.files) {
-        const url = await uploadToCloudinary(file.buffer, 'festival-events');
-        newImageUrls.push(url);
+        newImageObjects.push({
+          data: file.buffer,
+          filename: file.originalname,
+          mimetype: file.mimetype,
+        });
       }
-      req.body.images = [...event.images, ...newImageUrls];
-      if (!event.thumbnail && newImageUrls.length > 0) {
-        req.body.thumbnail = newImageUrls[0];
+      req.body.images = [...event.images, ...newImageObjects];
+      if (!event.thumbnail && newImageObjects.length > 0) {
+        req.body.thumbnail = newImageObjects[0];
       }
     }
 
@@ -199,6 +205,7 @@ const updateEvent = async (req, res, next) => {
       data: { event: updatedEvent },
     });
   } catch (error) {
+    console.error('Event update error:', error);
     next(error);
   }
 };
@@ -230,7 +237,8 @@ const getFeaturedEvents = async (req, res, next) => {
     const events = await Event.find({ isFeatured: true, status: 'upcoming' })
       .sort({ date: 1 })
       .limit(6)
-      .populate('organizer', 'name avatar');
+      .populate('organizer', 'name avatar')
+      .select('-images.data -thumbnail.data');
 
     res.status(200).json({
       success: true,
@@ -257,7 +265,8 @@ const getEventsByCategory = async (req, res, next) => {
         $project: {
           category: '$_id',
           count: 1,
-          sampleThumbnail: 1,
+          'sampleThumbnail.filename': 1,
+          'sampleThumbnail.mimetype': 1,
           _id: 0,
         },
       },
@@ -282,13 +291,62 @@ const getUpcomingEvents = async (req, res, next) => {
     })
       .sort({ date: 1 })
       .limit(3)
-      .populate('organizer', 'name avatar');
+      .populate('organizer', 'name avatar')
+      .select('-images.data -thumbnail.data');
 
     res.status(200).json({
       success: true,
       message: 'Upcoming events fetched',
       data: { events },
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getEventImage = async (req, res, next) => {
+  try {
+    const { eventId, imageIndex } = req.params;
+    const event = await Event.findById(eventId);
+
+    if (!event) {
+      res.statusCode = 404;
+      throw new Error('Event not found');
+    }
+
+    const index = parseInt(imageIndex) || 0;
+    if (!event.images || !event.images[index]) {
+      res.statusCode = 404;
+      throw new Error('Image not found');
+    }
+
+    const image = event.images[index];
+    res.set('Content-Type', image.mimetype);
+    res.set('Content-Disposition', `inline; filename="${image.filename}"`);
+    res.send(image.data);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getEventThumbnail = async (req, res, next) => {
+  try {
+    const { eventId } = req.params;
+    const event = await Event.findById(eventId);
+
+    if (!event) {
+      res.statusCode = 404;
+      throw new Error('Event not found');
+    }
+
+    if (!event.thumbnail || !event.thumbnail.data) {
+      res.statusCode = 404;
+      throw new Error('Thumbnail not found');
+    }
+
+    res.set('Content-Type', event.thumbnail.mimetype);
+    res.set('Content-Disposition', `inline; filename="${event.thumbnail.filename}"`);
+    res.send(event.thumbnail.data);
   } catch (error) {
     next(error);
   }
@@ -303,4 +361,6 @@ module.exports = {
   getFeaturedEvents,
   getEventsByCategory,
   getUpcomingEvents,
+  getEventImage,
+  getEventThumbnail,
 };
