@@ -19,7 +19,8 @@ const Gallery = () => {
         const res = await getAllEvents({ limit: 100 });
         const events = res.data.data.events || [];
         const allImages = [];
-        const API_BASE = (import.meta.env.VITE_API_URL || 'https://eventverse-backend-8ue1.onrender.com') + '/api/v1';
+        const rawApiUrl = import.meta.env.VITE_API_URL || 'https://eventverse-backend-8ue1.onrender.com';
+        const API_BASE = rawApiUrl.replace(/\/+$/, '').replace(/\/api\/v1$/i, '') + '/api/v1';
         events.forEach(event => {
           if (event.images && event.images.length > 0) {
             event.images.forEach((_, index) => {
