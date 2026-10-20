@@ -1,23 +1,59 @@
 const nodemailer = require('nodemailer');
 
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: Number(process.env.EMAIL_PORT),
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+const isEmailConfigured = () => {
+  const user = (process.env.EMAIL_USER || '').trim();
+  const pass = (process.env.EMAIL_PASS || '').trim().replace(/['"]/g, '');
+  return (
+    user &&
+    user !== 'your_email@gmail.com' &&
+    pass &&
+    pass !== 'your_app_password'
+  );
+};
 
-const sendEmail = async ({ to, subject, html }) => {
+const sendEmail = async ({ to, subject, html, text = '', attachments = [] }) => {
+  if (!isEmailConfigured()) {
+    console.warn(
+      `[EmailService] SMTP credentials are not configured in backend/.env. Simulated email dispatch to: ${to} | Subject: "${subject}". To send real emails, set EMAIL_USER and EMAIL_PASS (Google App Password) in backend/.env.`
+    );
+    return { success: false, simulated: true };
+  }
+
+  const user = (process.env.EMAIL_USER || '').trim();
+  const pass = (process.env.EMAIL_PASS || '').trim().replace(/['"]/g, '');
+  const host = (process.env.EMAIL_HOST || 'smtp.gmail.com').trim();
+  const port = Number(process.env.EMAIL_PORT) || 587;
+  const isGmail = host === 'smtp.gmail.com';
+
+  const transportConfig = isGmail
+    ? {
+        service: 'gmail',
+        auth: { user, pass },
+        tls: { rejectUnauthorized: false },
+      }
+    : {
+        host,
+        port,
+        secure: port === 465,
+        auth: { user, pass },
+        tls: { rejectUnauthorized: false },
+      };
+
+  const transporter = nodemailer.createTransport(transportConfig);
+
   const mailOptions = {
-    from: process.env.EMAIL_FROM,
+    from: process.env.EMAIL_FROM || `EventVerse <${user}>`,
+    replyTo: process.env.EMAIL_REPLY_TO || user,
     to,
     subject,
+    text: text || '',
     html,
+    attachments,
   };
-  await transporter.sendMail(mailOptions);
+
+  const info = await transporter.sendMail(mailOptions);
+  console.log(`[EmailService] Email dispatched successfully to ${to} (MessageId: ${info.messageId})`);
+  return info;
 };
 
 const welcomeEmailTemplate = (name) => {
@@ -58,12 +94,19 @@ const welcomeEmailTemplate = (name) => {
 };
 
 const registrationConfirmTemplate = (name, eventTitle, eventDate, eventVenue, qrCodeDataUrl) => {
-  const formattedDate = new Date(eventDate).toLocaleDateString('en-IN', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  let formattedDate = 'Upcoming';
+  try {
+    if (eventDate) {
+      formattedDate = new Date(eventDate).toLocaleDateString('en-IN', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    }
+  } catch (_) {
+    formattedDate = String(eventDate || 'Upcoming');
+  }
   return `
 <!DOCTYPE html>
 <html>
@@ -91,7 +134,8 @@ const registrationConfirmTemplate = (name, eventTitle, eventDate, eventVenue, qr
         <p style="color:#78716C;font-size:13px;margin-top:10px;">Show this QR code at the venue for entry</p>
       </div>
       <div style="text-align:center;margin:20px 0;">
-        <a href="${process.env.CLIENT_URL}/dashboard" style="background:linear-gradient(135deg,#D97706,#EA580C);color:#FFFFFF;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block;">View My Tickets</a>
+        <p style="color:#78716C;font-size:13px;margin-bottom:12px;">Access your digital passes anytime on EventVerse</p>
+        <a href="${process.env.CLIENT_URL && !process.env.CLIENT_URL.includes('localhost') ? process.env.CLIENT_URL + '/dashboard' : 'https://eventverse-culture.web.app/dashboard'}" style="background:linear-gradient(135deg,#D97706,#EA580C);color:#FFFFFF;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block;">View My Tickets</a>
       </div>
     </div>
     <div style="background:#1C1917;padding:20px;text-align:center;">
@@ -135,8 +179,61 @@ const passwordResetTemplate = (name, otp) => {
 </html>`;
 };
 
+const sendTicketEmail = async ({ to, name, eventTitle, eventDate, eventVenue, qrCodeDataUrl }) => {
+  const attachments = [];
+  let qrImgSrc = qrCodeDataUrl;
+
+  if (qrCodeDataUrl && qrCodeDataUrl.startsWith('data:image')) {
+    const base64Data = qrCodeDataUrl.split(';base64,').pop();
+    attachments.push({
+      filename: 'ticket-qr.png',
+      content: Buffer.from(base64Data, 'base64'),
+      cid: 'ticketqrcode',
+    });
+    qrImgSrc = 'cid:ticketqrcode';
+  }
+
+  let formattedDate = 'Upcoming';
+  try {
+    if (eventDate) {
+      formattedDate = new Date(eventDate).toLocaleDateString('en-IN', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    }
+  } catch (_) {
+    formattedDate = String(eventDate || 'Upcoming');
+  }
+
+  const plainText = `Namaste, ${name}!
+
+Your registration for "${eventTitle}" has been confirmed!
+
+Event Details:
+- Festival: ${eventTitle}
+- Date: ${formattedDate}
+- Venue: ${eventVenue || 'Venue entrance'}
+
+Your digital entry QR code ticket is attached with this email (ticket-qr.png). Show this QR code at the entrance for admission.
+
+Thank you for celebrating with EventVerse!
+EventVerse — India's Living Culture`;
+
+  return await sendEmail({
+    to,
+    subject: `EventVerse Ticket Confirmed — ${eventTitle}`,
+    text: plainText,
+    html: registrationConfirmTemplate(name, eventTitle, eventDate, eventVenue, qrImgSrc),
+    attachments,
+  });
+};
+
 module.exports = {
+  isEmailConfigured,
   sendEmail,
+  sendTicketEmail,
   welcomeEmailTemplate,
   registrationConfirmTemplate,
   passwordResetTemplate,

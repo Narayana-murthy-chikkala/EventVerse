@@ -527,7 +527,7 @@ const css = `
 `;
 
 const Navbar = () => {
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout, isAdmin, isOrganizer } = useAuth();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -536,8 +536,8 @@ const Navbar = () => {
   const [lastScrollY, setLastScrollY] = useState(0);
   const navigate = useNavigate();
 
-  // Check if we're on admin page
-  const isAdminPage = location.pathname.startsWith('/admin');
+  // Check if we're on admin or organizer page
+  const isAdminPage = location.pathname.startsWith('/admin') || location.pathname.startsWith('/organizer');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -679,6 +679,17 @@ const Navbar = () => {
                       </Link>
                     )}
 
+                    {isOrganizer && (
+                      <Link
+                        to="/organizer"
+                        onClick={() => setDropdownOpen(false)}
+                        className="navbar-dropdown-item"
+                      >
+                        <span className="navbar-dropdown-emoji">🎪</span>
+                        Organizer Panel
+                      </Link>
+                    )}
+
                     <button
                       onClick={() => {
                         setDropdownOpen(false);
@@ -742,6 +753,15 @@ const Navbar = () => {
                       className="navbar-mobile-link"
                     >
                       <span>⚙️</span> Admin Panel
+                    </Link>
+                  )}
+                  {isOrganizer && (
+                    <Link
+                      to="/organizer"
+                      onClick={() => setMobileOpen(false)}
+                      className="navbar-mobile-link"
+                    >
+                      <span>🎪</span> Organizer Panel
                     </Link>
                   )}
                   <button

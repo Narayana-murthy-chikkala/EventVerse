@@ -9,15 +9,16 @@ const {
   toggleFeaturedEvent,
 } = require('../controllers/adminController');
 const { protect } = require('../middleware/authMiddleware');
-const { adminOnly } = require('../middleware/adminMiddleware');
+const { adminOnly, organizerOrAdmin } = require('../middleware/adminMiddleware');
 
-router.use(protect, adminOnly);
+// Super-admin only operations
+router.get('/users', protect, adminOnly, getAllUsers);
+router.put('/users/:id/role', protect, adminOnly, updateUserRole);
+router.delete('/users/:id', protect, adminOnly, deleteUser);
 
-router.get('/stats', getDashboardStats);
-router.get('/users', getAllUsers);
-router.put('/users/:id/role', updateUserRole);
-router.delete('/users/:id', deleteUser);
-router.get('/registrations', getAllRegistrations);
-router.put('/events/:id/feature', toggleFeaturedEvent);
+// Accessible by both admin and organizers
+router.get('/stats', protect, organizerOrAdmin, getDashboardStats);
+router.get('/registrations', protect, organizerOrAdmin, getAllRegistrations);
+router.put('/events/:id/feature', protect, organizerOrAdmin, toggleFeaturedEvent);
 
 module.exports = router;

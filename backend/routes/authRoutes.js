@@ -12,15 +12,16 @@ const {
   googleCallback,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
+const { authLimiter } = require('../middleware/rateLimiter');
 
-router.post('/register', register);
-router.post('/login', login);
+router.post('/register', authLimiter, register);
+router.post('/login', authLimiter, login);
 router.post('/google', googleAuth);
 router.get('/google/login', googleLoginUrl);
 router.get('/google/callback', googleCallback);
 router.get('/me', protect, getMe);
 router.put('/update-password', protect, updatePassword);
-router.post('/forgot-password', forgotPassword);
-router.post('/reset-password', resetPassword);
+router.post('/forgot-password', authLimiter, forgotPassword);
+router.post('/reset-password', authLimiter, resetPassword);
 
 module.exports = router;

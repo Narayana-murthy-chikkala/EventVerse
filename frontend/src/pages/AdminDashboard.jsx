@@ -13,6 +13,7 @@ import {
   updateUserRole,
   deleteUser,
   getAllAdminRegistrations,
+  deleteRegistration,
 } from '../services/eventService';
 import {
   BarChart,
@@ -662,6 +663,12 @@ const styles = `
     color: var(--accent-info);
     background: rgba(59, 130, 246, 0.1);
     border-color: rgba(59, 130, 246, 0.25);
+  }
+
+  .badge-purple {
+    color: #C084FC;
+    background: rgba(192, 132, 252, 0.12);
+    border-color: rgba(192, 132, 252, 0.3);
   }
 
   /* ═══════════════════════════════════════════════════════ */
@@ -1562,6 +1569,9 @@ function initialEventForm() {
 
 const AdminDashboard = () => {
   const { user } = useAuth();
+  const isOrganizer = user?.role === 'organizer';
+  const isAdmin = user?.role === 'admin';
+
   const [activeTab, setActiveTab] = useState('stats');
   const [loading, setLoading] = useState(true);
 
@@ -1588,9 +1598,12 @@ const AdminDashboard = () => {
   useEffect(() => {
     if (activeTab === 'stats') fetchStats();
     else if (activeTab === 'events') fetchEvents();
-    else if (activeTab === 'users') fetchUsers();
+    else if (activeTab === 'users') {
+      if (isAdmin) fetchUsers();
+      else setActiveTab('events');
+    }
     else if (activeTab === 'registrations') fetchRegistrations();
-  }, [activeTab, eventsPage, usersPage, regsPage, userSearch, regSearch]);
+  }, [activeTab, eventsPage, usersPage, regsPage, userSearch, regSearch, isOrganizer, isAdmin]);
 
   const fetchStats = async () => {
     setLoading(true);
@@ -1602,7 +1615,11 @@ const AdminDashboard = () => {
   const fetchEvents = async () => {
     setLoading(true);
     try {
-      const res = await getAllEvents({ page: eventsPage, limit: 10 });
+      const params = { page: eventsPage, limit: 10 };
+      if (isOrganizer) {
+        params.organizer = user?._id;
+      }
+      const res = await getAllEvents(params);
       setEvents(res.data.data.events);
       setEventsTotal(res.data.data.totalPages);
     } catch { toast.error('Failed to load events'); }
@@ -1672,7 +1689,7 @@ const AdminDashboard = () => {
           formData.append(key, JSON.stringify(eventFormData.highlights.split('\n').filter(h => h.trim())));
         } else if (key === 'images') {
           Array.from(eventFormData.images).forEach(file => formData.append('images', file));
-        } else if (['thumbnail', 'organizer', '_id', '__v', 'createdAt', 'updatedAt', 'id'].includes(key)) {
+        } else if (['thumbnail', 'thumbnailUrl', 'thumbnailPublicId', 'organizer', '_id', '__v', 'createdAt', 'updatedAt', 'id'].includes(key)) {
           // Ignore system fields and populated objects
         } else if (eventFormData[key] !== null && eventFormData[key] !== '') {
           formData.append(key, eventFormData[key]);
@@ -1707,12 +1724,27 @@ const AdminDashboard = () => {
     catch { toast.error('Failed to delete user'); }
   };
 
-  const tabs = [
+  const handleRegistrationDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this registration?')) return;
+    try {
+      await deleteRegistration(id);
+      toast.success('Registration deleted');
+      fetchRegistrations();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete registration');
+    }
+  };
+
+  const allTabs = [
     { id: 'stats', label: 'Overview', icon: <HiOutlineChartBar /> },
-    { id: 'events', label: 'Events', icon: <HiOutlineCollection /> },
+    { id: 'events', label: isOrganizer ? 'My Festivals' : 'Events', icon: <HiOutlineCollection /> },
     { id: 'users', label: 'Users', icon: <HiOutlineUsers /> },
     { id: 'registrations', label: 'Registrations', icon: <HiOutlineTicket /> },
   ];
+
+  const tabs = isOrganizer
+    ? allTabs.filter(t => t.id !== 'users')
+    : allTabs;
 
   return (
     <>
@@ -1723,8 +1755,8 @@ const AdminDashboard = () => {
         {/* ── SIDEBAR ── */}
         <aside className="adm-sidebar">
           <div className="adm-sidebar-mark">
-            <div className="adm-sidebar-label">Admin Control</div>
-            <div className="adm-sidebar-title">Dashboard</div>
+            <div className="adm-sidebar-label">{isOrganizer ? 'Organizer Portal' : 'Admin Control'}</div>
+            <div className="adm-sidebar-title">{isOrganizer ? 'Festival Hub' : 'Dashboard'}</div>
           </div>
           <nav className="adm-nav">
             {tabs.map(tab => (
@@ -1748,19 +1780,19 @@ const AdminDashboard = () => {
             <div className="slide-up">
               <div className="adm-page-header">
                 <div>
-                  <div className="adm-page-eyebrow">📊 Analytics & Insights</div>
-                  <div className="adm-page-title">Overview</div>
-                  <div className="adm-page-sub">Real-time platform metrics and performance</div>
+                  <div className="adm-page-eyebrow">{isOrganizer ? '🎪 Organizer Portal' : '📊 Analytics & Insights'}</div>
+                  <div className="adm-page-title">{isOrganizer ? 'Festival Overview' : 'Overview'}</div>
+                  <div className="adm-page-sub">{isOrganizer ? 'Real-time performance and metrics for your hosted events' : 'Real-time platform metrics and performance'}</div>
                 </div>
               </div>
 
               {/* Metrics */}
               <div className="adm-metrics">
                 {[
-                  { label: 'Total Users', value: stats.totalUsers, icon: <HiOutlineUsers />, color: '#3B82F6' },
-                  { label: 'Total Events', value: stats.totalEvents, icon: <HiOutlineCollection />, color: '#6366F1' },
+                  { label: isOrganizer ? 'Attendees' : 'Total Users', value: stats.totalUsers, icon: <HiOutlineUsers />, color: '#3B82F6' },
+                  { label: isOrganizer ? 'My Festivals' : 'Total Events', value: stats.totalEvents, icon: <HiOutlineCollection />, color: '#6366F1' },
                   { label: 'Registrations', value: stats.totalRegistrations, icon: <HiOutlineTicket />, color: '#EC4899' },
-                  { label: 'Revenue', value: `₹${(stats.totalRevenue || 0).toLocaleString()}`, icon: <HiOutlineChartBar />, color: '#10B981' },
+                  { label: isOrganizer ? 'Revenue' : 'Revenue', value: `₹${(stats.totalRevenue || 0).toLocaleString()}`, icon: <HiOutlineChartBar />, color: '#10B981' },
                 ].map((m, i) => (
                   <div className="adm-metric-card" key={i}>
                     <div className="adm-metric-icon" style={{ color: m.color }}>
@@ -1918,16 +1950,21 @@ const AdminDashboard = () => {
                     <tbody>
                       {events.map(event => {
                         const fill = Math.min((event.registeredCount / event.capacity) * 100, 100);
-                        const isOwner = event.organizer && (
+                        const isOwner = isAdmin || (event.organizer && (
                           (typeof event.organizer === 'object' && event.organizer._id === user?._id) ||
                           (typeof event.organizer === 'string' && event.organizer === user?._id)
-                        );
+                        ));
                         return (
                           <tr key={event._id}>
                             <td>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                                 <img
-                                  src={event.thumbnail || 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=100&q=80'}
+                                  src={
+                                    event.thumbnailUrl ||
+                                    event.images?.[0]?.url ||
+                                    event.thumbnail ||
+                                    'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=100&q=80'
+                                  }
                                   alt={event.title}
                                   className="adm-event-img"
                                 />
@@ -2051,17 +2088,30 @@ const AdminDashboard = () => {
                           </td>
                           <td style={{ fontFamily: 'JetBrains Mono', fontSize: 13 }}>{u.email}</td>
                           <td>
-                            <span className={`badge ${u.role === 'admin' ? 'badge-amber' : 'badge-gray'}`}>{u.role}</span>
+                            <span className={`badge ${u.role === 'admin' ? 'badge-amber' : u.role === 'organizer' ? 'badge-purple' : 'badge-gray'}`}>
+                              {u.role}
+                            </span>
                           </td>
                           <td style={{ fontFamily: 'JetBrains Mono', fontSize: 12 }}>{new Date(u.createdAt).toLocaleDateString()}</td>
                           <td className="td-right">
-                            {u._id !== user._id && (
-                              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                                <button className="btn-ghost" onClick={() => handleRoleToggle(u._id)}>Toggle Role</button>
-                                <button className="btn-icon danger" onClick={() => handleUserDelete(u._id)} title="Delete">
+                            {u._id !== user._id && u.email !== 'admin@gmail.com' && (
+                              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', alignItems: 'center' }}>
+                                <button
+                                  className="btn-ghost"
+                                  onClick={() => handleRoleToggle(u._id)}
+                                  title="Cycle role: user -> organizer -> admin"
+                                >
+                                  {u.role === 'user' ? 'Make Organizer' : u.role === 'organizer' ? 'Make Admin' : 'Make User'}
+                                </button>
+                                <button className="btn-icon danger" onClick={() => handleUserDelete(u._id)} title="Delete user">
                                   <HiOutlineTrash />
                                 </button>
                               </div>
+                            )}
+                            {u.email === 'admin@gmail.com' && (
+                              <span style={{ fontSize: 12, color: '#94A3B8', fontStyle: 'italic', paddingRight: 8 }}>
+                                Super Admin
+                              </span>
                             )}
                           </td>
                         </tr>
@@ -2110,7 +2160,8 @@ const AdminDashboard = () => {
                         <th>Event</th>
                         <th>Amount</th>
                         <th>Status</th>
-                        <th className="right">Date</th>
+                        <th>Date</th>
+                        <th className="right">Action</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2127,8 +2178,17 @@ const AdminDashboard = () => {
                           <td>
                             <span className={`badge ${r.status === 'confirmed' ? 'badge-green' : 'badge-red'}`}>{r.status}</span>
                           </td>
-                          <td className="td-right" style={{ fontFamily: 'JetBrains Mono', fontSize: 12 }}>
+                          <td style={{ fontFamily: 'JetBrains Mono', fontSize: 12 }}>
                             {new Date(r.registeredAt).toLocaleDateString()}
+                          </td>
+                          <td className="td-right">
+                            <button
+                              className="btn-icon danger"
+                              onClick={() => handleRegistrationDelete(r._id)}
+                              title="Delete registration"
+                            >
+                              <HiOutlineTrash style={{ width: 16, height: 16 }} />
+                            </button>
                           </td>
                         </tr>
                       ))}

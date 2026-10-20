@@ -27,7 +27,7 @@ const registrationSchema = new mongoose.Schema(
     },
     paymentStatus: {
       type: String,
-      enum: ['pending', 'paid', 'free', 'failed'],
+      enum: ['pending', 'paid', 'free', 'failed', 'expired'],
       default: 'pending',
     },
     paymentId: {
@@ -44,8 +44,12 @@ const registrationSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['confirmed', 'cancelled', 'waitlisted'],
+      enum: ['reserved', 'confirmed', 'cancelled', 'waitlisted', 'expired'],
       default: 'confirmed',
+    },
+    reservationExpiresAt: {
+      type: Date,
+      default: null,
     },
     specialRequests: {
       type: String,

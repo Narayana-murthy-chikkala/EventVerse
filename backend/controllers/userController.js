@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Registration = require('../models/Registration');
+const cloudinaryService = require('../services/cloudinaryService');
 
 const getProfile = async (req, res, next) => {
   try {
@@ -37,10 +38,20 @@ const updateProfile = async (req, res, next) => {
       throw new Error('User not found');
     }
 
+    // Upload avatar to Cloudinary
     if (req.file) {
-      const base64Image = req.file.buffer.toString('base64');
-      const avatarDataUri = `data:${req.file.mimetype};base64,${base64Image}`;
-      user.avatar = avatarDataUri;
+      try {
+        const result = await cloudinaryService.uploadAvatar(
+          req.file.buffer,
+          req.user._id.toString()
+        );
+        user.avatar = result.url;
+      } catch (uploadError) {
+        console.error('Avatar upload failed, using base64 fallback:', uploadError.message);
+        // Fallback to base64 data URI
+        const base64Image = req.file.buffer.toString('base64');
+        user.avatar = `data:${req.file.mimetype};base64,${base64Image}`;
+      }
     }
 
     const { name, bio, phone, city, favoriteCategories } = req.body;
@@ -71,7 +82,7 @@ const updateProfile = async (req, res, next) => {
 const getMyRegistrations = async (req, res, next) => {
   try {
     const registrations = await Registration.find({ user: req.user._id })
-      .populate('event', 'title thumbnail.filename thumbnail.mimetype date venue city category status price isFree')
+      .populate('event', 'title thumbnailUrl date venue city category status price isFree')
       .sort({ registeredAt: -1 });
 
     res.status(200).json({

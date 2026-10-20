@@ -1,7 +1,18 @@
 const Event = require('../models/Event');
+const cloudinaryService = require('../services/cloudinaryService');
+const cacheService = require('../services/cacheService');
 
 const getAllEvents = async (req, res, next) => {
   try {
+    const cacheKey = `events:list:${JSON.stringify(req.query)}`;
+    const cached = await cacheService.get(cacheKey);
+    if (cached) {
+      return res.status(200).json({
+        ...cached,
+        fromCache: true,
+      });
+    }
+
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 9;
     const skip = (page - 1) * limit;
@@ -63,13 +74,13 @@ const getAllEvents = async (req, res, next) => {
     const totalPages = Math.ceil(totalEvents / limit);
 
     const events = await Event.find(filter)
+      .select('-thumbnail.data -images.data')
       .sort(sortObj)
       .skip(skip)
       .limit(limit)
-      .populate('organizer', 'name avatar')
-      .select('-images.data -thumbnail.data');
+      .populate('organizer', 'name avatar');
 
-    res.status(200).json({
+    const responsePayload = {
       success: true,
       message: 'Events fetched',
       data: {
@@ -78,7 +89,12 @@ const getAllEvents = async (req, res, next) => {
         currentPage: page,
         totalEvents,
       },
-    });
+    };
+
+    // Cache list for 120 seconds
+    await cacheService.set(cacheKey, responsePayload, 120);
+
+    res.status(200).json(responsePayload);
   } catch (error) {
     next(error);
   }
@@ -86,20 +102,34 @@ const getAllEvents = async (req, res, next) => {
 
 const getEventById = async (req, res, next) => {
   try {
+    const cacheKey = `events:detail:${req.params.id}`;
+    const cached = await cacheService.get(cacheKey);
+    if (cached) {
+      return res.status(200).json({
+        ...cached,
+        fromCache: true,
+      });
+    }
+
     const event = await Event.findById(req.params.id)
-      .populate('organizer', 'name avatar bio')
-      .select('-images.data -thumbnail.data');
+      .select('-thumbnail.data -images.data')
+      .populate('organizer', 'name avatar bio');
 
     if (!event) {
       res.statusCode = 404;
       throw new Error('Event not found');
     }
 
-    res.status(200).json({
+    const responsePayload = {
       success: true,
       message: 'Event fetched',
       data: { event },
-    });
+    };
+
+    // Cache event detail for 180 seconds
+    await cacheService.set(cacheKey, responsePayload, 180);
+
+    res.status(200).json(responsePayload);
   } catch (error) {
     next(error);
   }
@@ -107,25 +137,46 @@ const getEventById = async (req, res, next) => {
 
 const createEvent = async (req, res, next) => {
   try {
-    const imageObjects = [];
+    const imageUrls = [];
 
+    // Upload images to Cloudinary
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
-        imageObjects.push({
-          data: file.buffer,
-          filename: file.originalname,
-          mimetype: file.mimetype,
-        });
+        try {
+          const result = await cloudinaryService.uploadImage(file.buffer, {
+            folder: 'eventverse/events',
+          });
+          imageUrls.push({
+            url: result.url,
+            publicId: result.publicId,
+            filename: file.originalname,
+          });
+        } catch (uploadError) {
+          console.error('Image upload failed:', uploadError.message);
+        }
       }
     }
 
     const eventData = { ...req.body };
     eventData.organizer = req.user._id;
 
-    if (imageObjects.length > 0) {
-      eventData.images = imageObjects;
-      if (!eventData.thumbnail) {
-        eventData.thumbnail = imageObjects[0];
+    if (imageUrls.length > 0) {
+      eventData.images = imageUrls;
+      // Use the first image as the thumbnail
+      if (!eventData.thumbnailUrl) {
+        // Upload a separate optimized thumbnail
+        try {
+          const thumbResult = await cloudinaryService.uploadThumbnail(
+            req.files[0].buffer,
+            'new'
+          );
+          eventData.thumbnailUrl = thumbResult.url;
+          eventData.thumbnailPublicId = thumbResult.publicId;
+        } catch (thumbError) {
+          // Fallback: use first image URL as thumbnail
+          eventData.thumbnailUrl = imageUrls[0].url;
+          eventData.thumbnailPublicId = imageUrls[0].publicId;
+        }
       }
     }
 
@@ -149,6 +200,9 @@ const createEvent = async (req, res, next) => {
 
     const event = await Event.create(eventData);
 
+    // Invalidate event cache so fresh data is loaded
+    await cacheService.delPattern('events:*');
+
     res.status(201).json({
       success: true,
       message: 'Event created successfully',
@@ -169,23 +223,48 @@ const updateEvent = async (req, res, next) => {
       throw new Error('Event not found');
     }
 
-    if (event.organizer.toString() !== req.user._id.toString()) {
+    if (
+      req.user.role !== 'admin' &&
+      event.organizer.toString() !== req.user._id.toString()
+    ) {
       res.statusCode = 403;
       throw new Error('Access denied: You can only edit your own events');
     }
 
+    // Handle new image uploads
     if (req.files && req.files.length > 0) {
-      const newImageObjects = [];
+      const newImageUrls = [];
       for (const file of req.files) {
-        newImageObjects.push({
-          data: file.buffer,
-          filename: file.originalname,
-          mimetype: file.mimetype,
-        });
+        try {
+          const result = await cloudinaryService.uploadImage(file.buffer, {
+            folder: 'eventverse/events',
+          });
+          newImageUrls.push({
+            url: result.url,
+            publicId: result.publicId,
+            filename: file.originalname,
+          });
+        } catch (uploadError) {
+          console.error('Image upload failed:', uploadError.message);
+        }
       }
-      req.body.images = [...event.images, ...newImageObjects];
-      if (!event.thumbnail && newImageObjects.length > 0) {
-        req.body.thumbnail = newImageObjects[0];
+
+      // Append new images to existing ones
+      req.body.images = [...(event.images || []), ...newImageUrls];
+
+      // Set thumbnail if not already set
+      if (!event.thumbnailUrl && newImageUrls.length > 0) {
+        try {
+          const thumbResult = await cloudinaryService.uploadThumbnail(
+            req.files[0].buffer,
+            event._id.toString()
+          );
+          req.body.thumbnailUrl = thumbResult.url;
+          req.body.thumbnailPublicId = thumbResult.publicId;
+        } catch (thumbError) {
+          req.body.thumbnailUrl = newImageUrls[0].url;
+          req.body.thumbnailPublicId = newImageUrls[0].publicId;
+        }
       }
     }
 
@@ -208,6 +287,9 @@ const updateEvent = async (req, res, next) => {
       { new: true, runValidators: true }
     );
 
+    // Invalidate event cache so updated data is served
+    await cacheService.delPattern('events:*');
+
     res.status(200).json({
       success: true,
       message: 'Event updated successfully',
@@ -228,14 +310,34 @@ const deleteEvent = async (req, res, next) => {
       throw new Error('Event not found');
     }
 
-    if (event.organizer.toString() !== req.user._id.toString()) {
+    if (
+      req.user.role !== 'admin' &&
+      event.organizer.toString() !== req.user._id.toString()
+    ) {
       res.statusCode = 403;
       throw new Error('Access denied: You can only delete your own events');
+    }
+
+    // Clean up Cloudinary images
+    const publicIdsToDelete = [];
+    if (event.images && event.images.length > 0) {
+      event.images.forEach((img) => {
+        if (img.publicId) publicIdsToDelete.push(img.publicId);
+      });
+    }
+    if (event.thumbnailPublicId) {
+      publicIdsToDelete.push(event.thumbnailPublicId);
+    }
+    if (publicIdsToDelete.length > 0) {
+      await cloudinaryService.deleteMultipleImages(publicIdsToDelete);
     }
 
     const Registration = require('../models/Registration');
     await Registration.deleteMany({ event: event._id });
     await Event.findByIdAndDelete(req.params.id);
+
+    // Invalidate event cache so deleted event is removed
+    await cacheService.delPattern('events:*');
 
     res.status(200).json({
       success: true,
@@ -250,10 +352,10 @@ const deleteEvent = async (req, res, next) => {
 const getFeaturedEvents = async (req, res, next) => {
   try {
     const events = await Event.find({ isFeatured: true, status: 'upcoming' })
+      .select('-thumbnail.data -images.data')
       .sort({ date: 1 })
       .limit(6)
-      .populate('organizer', 'name avatar')
-      .select('-images.data -thumbnail.data');
+      .populate('organizer', 'name avatar');
 
     res.status(200).json({
       success: true,
@@ -273,15 +375,14 @@ const getEventsByCategory = async (req, res, next) => {
         $group: {
           _id: '$category',
           count: { $sum: 1 },
-          sampleThumbnail: { $first: '$thumbnail' },
+          sampleThumbnail: { $first: '$thumbnailUrl' },
         },
       },
       {
         $project: {
           category: '$_id',
           count: 1,
-          'sampleThumbnail.filename': 1,
-          'sampleThumbnail.mimetype': 1,
+          sampleThumbnail: 1,
           _id: 0,
         },
       },
@@ -304,10 +405,10 @@ const getUpcomingEvents = async (req, res, next) => {
       status: 'upcoming',
       date: { $gte: new Date() },
     })
+      .select('-thumbnail.data -images.data')
       .sort({ date: 1 })
       .limit(3)
-      .populate('organizer', 'name avatar')
-      .select('-images.data -thumbnail.data');
+      .populate('organizer', 'name avatar');
 
     res.status(200).json({
       success: true,
@@ -319,6 +420,8 @@ const getUpcomingEvents = async (req, res, next) => {
   }
 };
 
+// Legacy endpoint — kept for backward compatibility with existing events
+// that may still have binary image data
 const getEventImage = async (req, res, next) => {
   try {
     const { eventId, imageIndex } = req.params;
@@ -330,20 +433,28 @@ const getEventImage = async (req, res, next) => {
     }
 
     const index = parseInt(imageIndex) || 0;
-    if (!event.images || !event.images[index]) {
-      res.statusCode = 404;
-      throw new Error('Image not found');
+
+    // New Cloudinary-based images — redirect to the URL
+    if (event.images && event.images[index] && event.images[index].url) {
+      return res.redirect(event.images[index].url);
     }
 
-    const image = event.images[index];
-    res.set('Content-Type', image.mimetype);
-    res.set('Content-Disposition', `inline; filename="${image.filename}"`);
-    res.send(image.data);
+    // Legacy binary images
+    if (event.images && event.images[index] && event.images[index].data) {
+      const image = event.images[index];
+      res.set('Content-Type', image.mimetype);
+      res.set('Content-Disposition', `inline; filename="${image.filename}"`);
+      return res.send(image.data);
+    }
+
+    res.statusCode = 404;
+    throw new Error('Image not found');
   } catch (error) {
     next(error);
   }
 };
 
+// Legacy endpoint — kept for backward compatibility
 const getEventThumbnail = async (req, res, next) => {
   try {
     const { eventId } = req.params;
@@ -354,14 +465,20 @@ const getEventThumbnail = async (req, res, next) => {
       throw new Error('Event not found');
     }
 
-    if (!event.thumbnail || !event.thumbnail.data) {
-      res.statusCode = 404;
-      throw new Error('Thumbnail not found');
+    // New Cloudinary-based thumbnail
+    if (event.thumbnailUrl) {
+      return res.redirect(event.thumbnailUrl);
     }
 
-    res.set('Content-Type', event.thumbnail.mimetype);
-    res.set('Content-Disposition', `inline; filename="${event.thumbnail.filename}"`);
-    res.send(event.thumbnail.data);
+    // Legacy binary thumbnail
+    if (event.thumbnail && event.thumbnail.data) {
+      res.set('Content-Type', event.thumbnail.mimetype);
+      res.set('Content-Disposition', `inline; filename="${event.thumbnail.filename}"`);
+      return res.send(event.thumbnail.data);
+    }
+
+    res.statusCode = 404;
+    throw new Error('Thumbnail not found');
   } catch (error) {
     next(error);
   }

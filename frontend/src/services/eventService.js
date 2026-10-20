@@ -27,8 +27,13 @@ export const getEventThumbnail = (eventId) =>
 export const registerForEvent = (data) => api.post('/registrations/register', data);
 export const verifyPayment = (data) => api.post('/registrations/verify-payment', data);
 export const cancelRegistration = (id) => api.delete(`/registrations/${id}/cancel`);
+export const deleteRegistration = (id) => api.delete(`/registrations/${id}`);
 export const getRegistrationById = (id) => api.get(`/registrations/${id}`);
+export const sendTicketEmail = (registrationId, email) =>
+  api.post(`/registrations/${registrationId}/send-email`, { email });
 export const getMyRegistrations = () => api.get('/users/my-registrations');
+export const getMyRegistrationsForEvent = (eventId) =>
+  api.get(`/registrations/event/${eventId}/mine`);
 
 export const updateProfile = (formData) =>
   api.put('/users/profile', formData, {
