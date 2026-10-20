@@ -142,7 +142,10 @@ const Gallery = () => {
                 background: 'var(--border-lighter)', borderRadius: '14px',
                 marginBottom: '20px', breakInside: 'avoid',
                 height: `${240 + (i % 3) * 80}px`,
-                animation: 'pulse 1.5s ease infinite',
+                animationName: 'pulse',
+                animationDuration: '1.5s',
+                animationTimingFunction: 'ease',
+                animationIterationCount: 'infinite',
                 animationDelay: `${i * 0.08}s`,
               }} />
             ))}
@@ -179,7 +182,10 @@ const Gallery = () => {
                   cursor: 'pointer', position: 'relative',
                   boxShadow: '0 2px 8px rgba(26,21,16,0.06)',
                   transition: 'all 0.4s cubic-bezier(0.34,1.56,0.64,1)',
-                  animation: 'fadeUp 0.5s ease both',
+                  animationName: 'fadeUp',
+                  animationDuration: '0.5s',
+                  animationTimingFunction: 'ease',
+                  animationFillMode: 'both',
                   animationDelay: `${(i % 8) * 0.06}s`,
                 }}
                 onClick={() => openLightbox(i)}

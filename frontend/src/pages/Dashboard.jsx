@@ -4,9 +4,9 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import EventCard from '../components/EventCard';
 import { SkeletonCard } from '../components/Loader';
-import { getMyRegistrations, getUpcomingEvents, cancelRegistration, getEventThumbnail } from '../services/eventService';
+import { getMyRegistrations, getUpcomingEvents, cancelRegistration, deleteRegistration, getEventThumbnail, sendTicketEmail } from '../services/eventService';
 import { blobToObjectUrl, revokeObjectUrl } from '../utils/imageUtils';
-import { HiOutlineTicket, HiOutlineCalendar, HiOutlineSearch, HiOutlinePencilAlt, HiOutlineDownload, HiOutlineX, HiOutlineCheckCircle, HiOutlineClock, HiOutlineLocationMarker } from 'react-icons/hi';
+import { HiOutlineTicket, HiOutlineCalendar, HiOutlineSearch, HiOutlinePencilAlt, HiOutlineDownload, HiOutlineX, HiOutlineCheckCircle, HiOutlineClock, HiOutlineLocationMarker, HiOutlineTrash, HiOutlineMail } from 'react-icons/hi';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -17,8 +17,11 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [ticketModal, setTicketModal] = useState(null);
   const [cancelConfirm, setCancelConfirm] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [regThumbnails, setRegThumbnails] = useState({});
   const [pendingTicketId, setPendingTicketId] = useState(null);
+  const [sendingEmailId, setSendingEmailId] = useState(null);
+  const [emailRecipient, setEmailRecipient] = useState('');
 
   // Check for ?ticket=regId from payment redirect
   useEffect(() => {
@@ -43,11 +46,17 @@ const Dashboard = () => {
         const thumbs = {};
         for (const reg of regs) {
           if (reg.event?._id) {
-            try {
-              const res = await getEventThumbnail(reg.event._id);
-              thumbs[reg.event._id] = blobToObjectUrl(res.data);
-            } catch (err) {
-              console.error('Failed to load thumbnail:', err);
+            if (reg.event.thumbnailUrl) {
+              thumbs[reg.event._id] = reg.event.thumbnailUrl;
+            } else if (reg.event.images?.[0]?.url) {
+              thumbs[reg.event._id] = reg.event.images[0].url;
+            } else {
+              try {
+                const res = await getEventThumbnail(reg.event._id);
+                thumbs[reg.event._id] = blobToObjectUrl(res.data);
+              } catch (err) {
+                console.error('Failed to load thumbnail:', err);
+              }
             }
           }
         }
@@ -61,7 +70,11 @@ const Dashboard = () => {
     fetchData();
 
     return () => {
-      Object.values(regThumbnails).forEach(url => revokeObjectUrl(url));
+      Object.values(regThumbnails).forEach((url) => {
+        if (url && url.startsWith('blob:')) {
+          revokeObjectUrl(url);
+        }
+      });
     };
   }, []);
 
@@ -81,10 +94,42 @@ const Dashboard = () => {
     try {
       await cancelRegistration(regId);
       setRegistrations(prev => prev.map(r => r._id === regId ? { ...r, status: 'cancelled' } : r));
-      toast.success('Registration cancelled');
+      toast.success('Registration cancelled successfully');
       setCancelConfirm(null);
-    } catch {
-      toast.error('Failed to cancel registration');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to cancel registration');
+    }
+  };
+
+  const handleDelete = async (regId) => {
+    try {
+      await deleteRegistration(regId);
+      setRegistrations(prev => prev.filter(r => r._id !== regId));
+      toast.success('Registration deleted successfully');
+      setDeleteConfirm(null);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete registration');
+    }
+  };
+
+  const handleSendEmailTicket = async (regId, customEmail) => {
+    if (!regId) return;
+    const targetEmail = (customEmail || emailRecipient || user?.email || '').trim();
+    if (!targetEmail) {
+      toast.error('Please specify a valid email address');
+      return;
+    }
+    setSendingEmailId(regId);
+    try {
+      const res = await sendTicketEmail(regId, targetEmail);
+      toast.success(
+        res.data?.message || `Official ticket dispatched to ${targetEmail}! Please check Inbox/Spam folder. ✉️`,
+        { duration: 6000 }
+      );
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to send ticket email');
+    } finally {
+      setSendingEmailId(null);
     }
   };
 
@@ -287,18 +332,47 @@ const Dashboard = () => {
                             View Ticket
                           </button>
                         )}
-                        {reg.status === 'confirmed' && (
+                        {reg.status === 'confirmed' ? (
+                          <>
+                            <button
+                              onClick={() => setCancelConfirm(reg._id)}
+                              style={{
+                                height: '34px', padding: '0 14px',
+                                background: 'transparent', border: '1.5px solid rgba(212,82,42,0.3)',
+                                borderRadius: '8px', fontSize: '12px', fontWeight: '600',
+                                color: 'var(--primary-terra)', cursor: 'pointer',
+                                transition: 'all 0.2s ease', fontFamily: "'Poppins', sans-serif",
+                              }}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={() => setDeleteConfirm(reg._id)}
+                              title="Delete registration"
+                              style={{
+                                height: '34px', width: '34px',
+                                background: 'transparent', border: '1.5px solid var(--border-light)',
+                                borderRadius: '8px', color: 'var(--text-light)', cursor: 'pointer',
+                                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                                transition: 'all 0.2s ease',
+                              }}
+                            >
+                              <HiOutlineTrash style={{ width: '15px', height: '15px' }} />
+                            </button>
+                          </>
+                        ) : (
                           <button
-                            onClick={() => setCancelConfirm(reg._id)}
+                            onClick={() => setDeleteConfirm(reg._id)}
                             style={{
                               height: '34px', padding: '0 14px',
-                              background: 'transparent', border: '1.5px solid rgba(212,82,42,0.3)',
+                              background: 'rgba(220,38,38,0.08)', border: '1.5px solid rgba(220,38,38,0.25)',
                               borderRadius: '8px', fontSize: '12px', fontWeight: '600',
-                              color: 'var(--primary-terra)', cursor: 'pointer',
+                              color: '#DC2626', cursor: 'pointer',
+                              display: 'inline-flex', alignItems: 'center', gap: '4px',
                               transition: 'all 0.2s ease', fontFamily: "'Poppins', sans-serif",
                             }}
                           >
-                            Cancel
+                            <HiOutlineTrash style={{ width: '14px', height: '14px' }} /> Delete
                           </button>
                         )}
                       </div>
@@ -496,26 +570,87 @@ const Dashboard = () => {
 
               {/* Download button */}
               {ticketModal.qrCode && (ticketModal.paymentStatus === 'paid' || ticketModal.paymentStatus === 'free') && (
-                <button
-                  onClick={() => {
-                    const link = document.createElement('a');
-                    link.href = ticketModal.qrCode;
-                    link.download = `eventverse-ticket-${ticketModal._id?.slice(-8)}.png`;
-                    link.click();
-                  }}
-                  style={{
-                    width: '100%', height: '46px',
-                    background: 'linear-gradient(135deg, var(--primary-terra), var(--primary-light))',
-                    color: 'white', border: 'none', borderRadius: '12px',
-                    fontSize: '14px', fontWeight: '600', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                    fontFamily: "'Poppins', sans-serif",
-                    boxShadow: '0 4px 16px rgba(212,82,42,0.25)',
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  <HiOutlineDownload style={{ width: '17px', height: '17px' }} /> Download QR Ticket
-                </button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
+                  <button
+                    onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = ticketModal.qrCode;
+                      link.download = `eventverse-ticket-${ticketModal._id?.slice(-8)}.png`;
+                      link.click();
+                    }}
+                    style={{
+                      width: '100%', height: '44px',
+                      background: 'linear-gradient(135deg, var(--primary-terra), var(--primary-light))',
+                      color: 'white', border: 'none', borderRadius: '12px',
+                      fontSize: '14px', fontWeight: '600', cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                      fontFamily: "'Poppins', sans-serif",
+                      boxShadow: '0 4px 16px rgba(212,82,42,0.25)',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <HiOutlineDownload style={{ width: '17px', height: '17px' }} /> Download QR Ticket
+                  </button>
+
+                  <div style={{
+                    background: 'rgba(212,82,42,0.04)',
+                    border: '1.5px solid rgba(212,82,42,0.2)',
+                    borderRadius: '12px',
+                    padding: '12px 14px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px',
+                    textAlign: 'left',
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-dark)' }}>
+                        <HiOutlineMail size={15} style={{ verticalAlign: '-2px', marginRight: '4px', color: 'var(--primary-terra)' }} />
+                        Send ticket to email:
+                      </span>
+                      <span style={{ fontSize: '11px', color: 'var(--text-light)' }}>
+                        Check Spam folder too
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <input
+                        type="email"
+                        value={emailRecipient || user?.email || ''}
+                        onChange={(e) => setEmailRecipient(e.target.value)}
+                        placeholder="your-email@example.com"
+                        style={{
+                          flex: 1,
+                          padding: '9px 12px',
+                          borderRadius: '8px',
+                          border: '1.5px solid var(--border-light)',
+                          fontSize: '13px',
+                          fontFamily: 'inherit',
+                          background: 'white',
+                          color: 'var(--text-dark)',
+                          outline: 'none',
+                        }}
+                      />
+                      <button
+                        onClick={() => handleSendEmailTicket(ticketModal._id, emailRecipient || user?.email)}
+                        disabled={sendingEmailId === ticketModal._id}
+                        style={{
+                          height: '36px',
+                          padding: '0 16px',
+                          fontSize: '13px',
+                          fontWeight: '700',
+                          whiteSpace: 'nowrap',
+                          background: 'var(--primary-terra)',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {sendingEmailId === ticketModal._id ? 'Sending…' : 'Send'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           </div>
@@ -565,6 +700,55 @@ const Dashboard = () => {
                 fontFamily: "'Poppins', sans-serif",
               }}>
                 Yes, Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Modal */}
+      {deleteConfirm && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 50,
+          background: 'rgba(26,21,16,0.6)', backdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px',
+        }}>
+          <div style={{
+            background: 'var(--bg-lighter)', borderRadius: '20px',
+            maxWidth: '360px', width: '100%', padding: '36px 28px',
+            border: '1.5px solid var(--border-light)',
+            boxShadow: '0 24px 60px rgba(26,21,16,0.15)', textAlign: 'center',
+          }}>
+            <div style={{
+              width: '56px', height: '56px', borderRadius: '50%',
+              background: 'rgba(220,38,38,0.1)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              margin: '0 auto 16px', fontSize: '28px',
+            }}>
+              🗑️
+            </div>
+            <h3 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-dark)', fontFamily: "'Playfair Display', serif", marginBottom: '10px' }}>Delete Ticket?</h3>
+            <p style={{ fontSize: '14px', color: 'var(--text-light)', fontFamily: "'Poppins', sans-serif", lineHeight: '1.6', marginBottom: '24px' }}>
+              Are you sure you want to permanently delete this registration record? This action cannot be undone.
+            </p>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={() => setDeleteConfirm(null)} style={{
+                flex: 1, height: '44px', background: 'var(--bg-light)',
+                border: '1.5px solid var(--border-light)', borderRadius: '10px',
+                fontSize: '14px', fontWeight: '600', color: 'var(--text-dark)', cursor: 'pointer',
+                fontFamily: "'Poppins', sans-serif",
+              }}>
+                Cancel
+              </button>
+              <button onClick={() => handleDelete(deleteConfirm)} style={{
+                flex: 1, height: '44px',
+                background: 'linear-gradient(135deg, #DC2626, #B91C1C)',
+                border: 'none', borderRadius: '10px',
+                fontSize: '14px', fontWeight: '600', color: 'white', cursor: 'pointer',
+                boxShadow: '0 4px 16px rgba(220,38,38,0.25)',
+                fontFamily: "'Poppins', sans-serif",
+              }}>
+                Delete Forever
               </button>
             </div>
           </div>

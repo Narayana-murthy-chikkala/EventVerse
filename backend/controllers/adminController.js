@@ -7,6 +7,17 @@ const getDashboardStats = async (req, res, next) => {
   try {
     const now = new Date();
     const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+    const isOrganizer = req.user.role === 'organizer';
+
+    let eventFilter = {};
+    let regFilter = { status: 'confirmed' };
+
+    if (isOrganizer) {
+      eventFilter.organizer = req.user._id;
+      const organizerEvents = await Event.find({ organizer: req.user._id }).select('_id');
+      const organizerEventIds = organizerEvents.map((e) => e._id);
+      regFilter.event = { $in: organizerEventIds };
+    }
 
     const [
       totalUsers,
@@ -18,32 +29,66 @@ const getDashboardStats = async (req, res, next) => {
       upcomingEvents,
       monthlyRegistrations,
     ] = await Promise.all([
-      User.countDocuments(),
-      Event.countDocuments(),
-      Registration.countDocuments({ status: 'confirmed' }),
+      isOrganizer
+        ? Registration.distinct('user', regFilter).then((users) => users.length)
+        : User.countDocuments(),
+      Event.countDocuments(eventFilter),
+      Registration.countDocuments(regFilter),
       Payment.aggregate([
         { $match: { status: 'paid' } },
+        ...(isOrganizer
+          ? [
+              {
+                $lookup: {
+                  from: 'registrations',
+                  localField: 'registration',
+                  foreignField: '_id',
+                  as: 'reg',
+                },
+              },
+              { $unwind: '$reg' },
+              {
+                $lookup: {
+                  from: 'events',
+                  localField: 'reg.event',
+                  foreignField: '_id',
+                  as: 'evt',
+                },
+              },
+              { $unwind: '$evt' },
+              { $match: { 'evt.organizer': req.user._id } },
+            ]
+          : []),
         { $group: { _id: null, total: { $sum: '$amount' } } },
       ]),
       Event.aggregate([
-        { $match: { status: { $ne: 'cancelled' } } },
+        {
+          $match: {
+            status: { $ne: 'cancelled' },
+            ...(isOrganizer ? { organizer: req.user._id } : {}),
+          },
+        },
         { $group: { _id: '$category', count: { $sum: 1 } } },
         { $project: { category: '$_id', count: 1, _id: 0 } },
         { $sort: { count: -1 } },
       ]),
-      Registration.find({ status: 'confirmed' })
+      Registration.find(regFilter)
         .sort({ registeredAt: -1 })
         .limit(5)
         .populate('user', 'name email avatar')
         .populate('event', 'title date thumbnail.filename thumbnail.mimetype'),
-      Event.find({ status: 'upcoming', date: { $gte: now } })
+      Event.find({
+        status: 'upcoming',
+        date: { $gte: now },
+        ...(isOrganizer ? { organizer: req.user._id } : {}),
+      })
         .sort({ date: 1 })
         .limit(5)
         .select('-images.data -thumbnail.data'),
       Registration.aggregate([
         {
           $match: {
-            status: 'confirmed',
+            ...regFilter,
             registeredAt: { $gte: sixMonthsAgo },
           },
         },
@@ -144,12 +189,29 @@ const updateUserRole = async (req, res, next) => {
       throw new Error('User not found');
     }
 
+    if (user.email === 'admin@gmail.com') {
+      res.statusCode = 400;
+      throw new Error('Super admin role cannot be modified');
+    }
+
     if (req.user._id.toString() === req.params.id) {
       res.statusCode = 400;
       throw new Error('Cannot change your own role');
     }
 
-    user.role = user.role === 'admin' ? 'user' : 'admin';
+    if (req.body && req.body.role && ['user', 'organizer', 'admin'].includes(req.body.role)) {
+      user.role = req.body.role;
+    } else {
+      // 3-way cycle: user -> organizer -> admin -> user
+      if (user.role === 'user') {
+        user.role = 'organizer';
+      } else if (user.role === 'organizer') {
+        user.role = 'admin';
+      } else {
+        user.role = 'user';
+      }
+    }
+
     await user.save({ validateBeforeSave: false });
 
     res.status(200).json({
@@ -169,6 +231,11 @@ const deleteUser = async (req, res, next) => {
     if (!user) {
       res.statusCode = 404;
       throw new Error('User not found');
+    }
+
+    if (user.email === 'admin@gmail.com') {
+      res.statusCode = 400;
+      throw new Error('Super admin cannot be deleted');
     }
 
     if (req.user._id.toString() === req.params.id) {
@@ -197,6 +264,13 @@ const getAllRegistrations = async (req, res, next) => {
 
     const filter = {};
 
+    // If organizer, only show registrations for their events
+    if (req.user.role === 'organizer') {
+      const myEvents = await Event.find({ organizer: req.user._id }).select('_id');
+      const myEventIds = myEvents.map((e) => e._id);
+      filter.event = { $in: myEventIds };
+    }
+
     if (req.query.search) {
       const searchRegex = { $regex: req.query.search, $options: 'i' };
       
@@ -204,7 +278,10 @@ const getAllRegistrations = async (req, res, next) => {
         $or: [{ name: searchRegex }, { email: searchRegex }]
       }).select('_id');
       
-      const matchingEvents = await Event.find({ title: searchRegex }).select('_id');
+      const matchingEvents = await Event.find({
+        title: searchRegex,
+        ...(req.user.role === 'organizer' ? { organizer: req.user._id } : {}),
+      }).select('_id');
       
       const orConditions = [
         { user: { $in: matchingUsers.map(u => u._id) } },
@@ -262,7 +339,7 @@ const toggleFeaturedEvent = async (req, res, next) => {
       throw new Error('Event not found');
     }
 
-    if (event.organizer.toString() !== req.user._id.toString()) {
+    if (req.user.role !== 'admin' && event.organizer.toString() !== req.user._id.toString()) {
       res.statusCode = 403;
       throw new Error('Access denied: You can only feature your own events');
     }

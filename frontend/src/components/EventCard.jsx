@@ -225,6 +225,14 @@ const EventCard = ({ event }) => {
   const [thumbnailUrl, setThumbnailUrl] = useState(null);
 
   useEffect(() => {
+    if (event.thumbnailUrl) {
+      setThumbnailUrl(event.thumbnailUrl);
+      return;
+    }
+    if (event.images && event.images[0] && event.images[0].url) {
+      setThumbnailUrl(event.images[0].url);
+      return;
+    }
     if (event._id) {
       getEventThumbnail(event._id)
         .then((res) => {
@@ -236,11 +244,11 @@ const EventCard = ({ event }) => {
     }
 
     return () => {
-      if (thumbnailUrl) {
+      if (thumbnailUrl && thumbnailUrl.startsWith('blob:')) {
         revokeObjectUrl(thumbnailUrl);
       }
     };
-  }, [event._id]);
+  }, [event._id, event.thumbnailUrl, event.images]);
 
   const isSoldOut = event.registeredCount >= event.capacity;
   const spotsLeft = event.capacity - event.registeredCount;

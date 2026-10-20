@@ -9,6 +9,7 @@ const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 
 // Load env variables
 dotenv.config();
+// EventVerse Server ready - Email ticket services active & deliverability enhanced
 
 // Connect Passport Config
 require('./config/passport');
@@ -19,6 +20,7 @@ const userRoutes = require('./routes/userRoutes');
 const eventRoutes = require('./routes/eventRoutes');
 const registrationRoutes = require('./routes/registrationRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
 const googleAuthRoutes = require('./routes/googleAuth');
 
 const app = express();
@@ -68,6 +70,7 @@ app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/events', eventRoutes);
 app.use('/api/v1/registrations', registrationRoutes);
 app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/payments', paymentRoutes);
 
 // Google Auth Routes
 app.use('/api/auth', googleAuthRoutes);

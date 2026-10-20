@@ -98,23 +98,36 @@ const eventSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // Cloudinary-based & legacy image storage
     images: {
       type: [
         {
-          data: Buffer,
-          filename: String,
-          mimetype: String,
+          url: { type: String, default: '' },
+          publicId: { type: String, default: '' },
+          filename: { type: String, default: '' },
+          data: { type: Buffer },
+          mimetype: { type: String, default: '' },
         },
       ],
       default: [],
     },
+    thumbnailUrl: {
+      type: String,
+      default: '',
+    },
+    thumbnailPublicId: {
+      type: String,
+      default: '',
+    },
+    // Legacy binary image fields — kept for backward compatibility
+    // with existing events that have binary data stored
     thumbnail: {
       type: {
         data: Buffer,
         filename: String,
         mimetype: String,
       },
-      default: {},
+      default: undefined,
     },
     videoUrl: {
       type: String,

@@ -126,10 +126,14 @@ const AppRoutes = () => {
             />
           </Route>
 
-          {/* Admin Routes */}
-          <Route element={<ProtectedRoute adminOnly />}>
+          {/* Admin & Organizer Routes */}
+          <Route element={<ProtectedRoute organizerOrAdmin />}>
             <Route
               path="/admin"
+              element={<AdminDashboard />}
+            />
+            <Route
+              path="/organizer"
               element={<AdminDashboard />}
             />
           </Route>
