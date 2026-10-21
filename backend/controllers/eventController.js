@@ -442,13 +442,13 @@ const getEventImage = async (req, res, next) => {
     // Legacy binary images
     if (event.images && event.images[index] && event.images[index].data) {
       const image = event.images[index];
-      res.set('Content-Type', image.mimetype);
-      res.set('Content-Disposition', `inline; filename="${image.filename}"`);
+      res.set('Content-Type', image.mimetype || 'image/jpeg');
+      res.set('Content-Disposition', `inline; filename="${image.filename || 'image.jpg'}"`);
       return res.send(image.data);
     }
 
-    res.statusCode = 404;
-    throw new Error('Image not found');
+    // Fallback cultural festival banner instead of 404 error
+    return res.redirect('https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80');
   } catch (error) {
     next(error);
   }
@@ -470,15 +470,27 @@ const getEventThumbnail = async (req, res, next) => {
       return res.redirect(event.thumbnailUrl);
     }
 
+    // Fallback to first image in Cloudinary images
+    if (event.images && event.images[0] && event.images[0].url) {
+      return res.redirect(event.images[0].url);
+    }
+
     // Legacy binary thumbnail
     if (event.thumbnail && event.thumbnail.data) {
-      res.set('Content-Type', event.thumbnail.mimetype);
-      res.set('Content-Disposition', `inline; filename="${event.thumbnail.filename}"`);
+      res.set('Content-Type', event.thumbnail.mimetype || 'image/jpeg');
+      res.set('Content-Disposition', `inline; filename="${event.thumbnail.filename || 'thumbnail.jpg'}"`);
       return res.send(event.thumbnail.data);
     }
 
-    res.statusCode = 404;
-    throw new Error('Thumbnail not found');
+    // Legacy binary image
+    if (event.images && event.images[0] && event.images[0].data) {
+      res.set('Content-Type', event.images[0].mimetype || 'image/jpeg');
+      res.set('Content-Disposition', `inline; filename="${event.images[0].filename || 'thumbnail.jpg'}"`);
+      return res.send(event.images[0].data);
+    }
+
+    // Fallback cultural festival banner instead of 404 error
+    return res.redirect('https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80');
   } catch (error) {
     next(error);
   }
