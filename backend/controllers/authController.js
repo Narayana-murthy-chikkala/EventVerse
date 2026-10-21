@@ -6,6 +6,7 @@ const generateToken = require('../utils/generateToken');
 const {
   sendEmail,
   welcomeEmailTemplate,
+  loginAlertTemplate,
   passwordResetTemplate,
 } = require('../utils/sendEmail');
 
@@ -90,6 +91,15 @@ const login = async (req, res, next) => {
     }
 
     const token = generateToken(user._id);
+
+    // Asynchronously send sign-in security notification email
+    try {
+      sendEmail({
+        to: user.email,
+        subject: '🔐 EventVerse Sign-in Notification',
+        html: loginAlertTemplate(user.name, new Date().toLocaleString('en-IN')),
+      }).catch((e) => console.error('Login alert email error:', e.message));
+    } catch (_) {}
 
     res.status(200).json({
       success: true,

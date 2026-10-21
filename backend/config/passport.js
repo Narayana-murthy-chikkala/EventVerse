@@ -2,6 +2,7 @@ const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 
 const User = require("../models/User");
+const { sendEmail, welcomeEmailTemplate, loginAlertTemplate } = require("../utils/sendEmail");
 
 passport.use(
   new GoogleStrategy(
@@ -20,7 +21,19 @@ passport.use(
 
         // Existing User
         if (user) {
-          console.log("USER EXISTS");
+          console.log("USER EXISTS:", email);
+          
+          // Send sign-in security notification email
+          try {
+            await sendEmail({
+              to: user.email,
+              subject: "🔐 EventVerse Sign-in Notification",
+              html: loginAlertTemplate(user.name, new Date().toLocaleString('en-IN')),
+            });
+          } catch (e) {
+            console.error("Login alert email failed:", e.message);
+          }
+
           return done(null, user);
         }
 
@@ -35,7 +48,19 @@ passport.use(
 
         await user.save();
 
-        console.log("NEW USER CREATED");
+        console.log("NEW USER CREATED:", email);
+
+        // Send welcome email to new Google user
+        try {
+          await sendEmail({
+            to: user.email,
+            subject: "🪔 Welcome to EventVerse!",
+            html: welcomeEmailTemplate(user.name),
+          });
+          console.log(`[Google Auth] Welcome email delivered to: ${user.email}`);
+        } catch (emailErr) {
+          console.error("[Google Auth] Welcome email failed:", emailErr.message);
+        }
 
         return done(null, user);
       } catch (error) {
