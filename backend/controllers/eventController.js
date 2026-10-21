@@ -1,6 +1,4 @@
 const Event = require('../models/Event');
-const cloudinaryService = require('../services/cloudinaryService');
-const cacheService = require('../services/cacheService');
 
 const getAllEvents = async (req, res, next) => {
   try {
