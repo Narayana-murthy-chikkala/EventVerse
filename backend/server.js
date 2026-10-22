@@ -24,7 +24,13 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const googleAuthRoutes = require('./routes/googleAuth');
 
 const app = express();
+const path = require('path');
 
+app.get('/googlec7dce6e8e21000df.html', (req, res) => {
+  res.sendFile(
+    path.join(__dirname, 'googlec7dce6e8e21000df.html')
+  );
+});
 // Connect Database
 connectDB();
 
